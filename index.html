@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1015">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kurzy">
+<title>Analyzátor kurzov</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--sans:Manrope,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--bg:#0b1015;--p1:#111921;--p2:#16202a;--p3:#1d2935;--ln:#243240;--tx:#e7eef5;--mu:#8a9aab;--ac:#2ee59d;--acd:rgba(46,229,157,.11);--wa:#ffb547;--wad:rgba(255,181,71,.11);--ba:#ff6b6b;--bad:rgba(255,107,107,.11);--bl:#63a8ff;--r:14px;--mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.45 Manrope,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+body{padding-bottom:calc(78px + env(safe-area-inset-bottom))}
+a{color:var(--bl)}
+h1,h2,h3{margin:0;letter-spacing:-.015em}
+h2{font-size:18px;font-weight:800}
+h3{font-size:15px;font-weight:700}
+p{margin:.4em 0}
+.mu{color:var(--mu)} .sm{font-size:13px} .xs{font-size:12px}
+.mono{font-family:var(--mono)}
+.pos{color:var(--ac)} .neg{color:var(--ba)} .wrn{color:var(--wa)}
+header.top{position:sticky;top:0;z-index:20;background:#0b1015f2;border-bottom:1px solid var(--ln);padding:calc(10px + env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) 10px max(16px,env(safe-area-inset-left))}
+.top-in{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:14px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:16px;letter-spacing:-.02em;white-space:nowrap}
+.logo i{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#2ee59d,#1aa3ff);color:#04140d;font-style:normal;font-family:var(--mono);font-size:13px;font-weight:700}
+.bank{margin-left:auto;font-family:var(--mono);font-size:13px;background:var(--p2);border:1px solid var(--ln);padding:6px 11px;border-radius:999px;white-space:nowrap;cursor:pointer}
+.bank span{color:var(--mu);font-family:var(--sans);font-size:11px;margin-right:6px;text-transform:uppercase;letter-spacing:.06em}
+nav.tabs{position:fixed;bottom:0;left:0;right:0;z-index:30;display:grid;grid-template-columns:repeat(6,1fr);background:#111921f7;border-top:1px solid var(--ln);padding-bottom:env(safe-area-inset-bottom)}
+.tab{appearance:none;border:0;background:none;color:var(--mu);font:700 10.5px Manrope,sans-serif;padding:9px 1px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.tab svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tab.on{color:var(--ac)}
+@media(min-width:860px){
+  body{padding-bottom:40px}
+  nav.tabs{position:static;display:flex;gap:4px;background:none;border:0;padding:0;margin-left:18px}
+  .tab{flex-direction:row;font-size:13.5px;padding:8px 12px;border-radius:10px;gap:7px}
+  .tab svg{width:18px;height:18px}
+  .tab.on{background:var(--acd)}
+  .tab:hover:not(.on){color:var(--tx)}
+}
+main{max-width:1100px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-left))}
+.view>*+*{margin-top:14px}
+.card{background:var(--p1);border:1px solid var(--ln);border-radius:var(--r);padding:16px}
+.card.tight{padding:12px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.sp{flex:1}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+.stat{background:var(--p1);border:1px solid var(--ln);border-radius:12px;padding:12px 14px}
+.stat .l{color:var(--mu);font-size:11px;text-transform:uppercase;letter-spacing:.07em;font-weight:700}
+.stat .v{font:600 20px var(--mono);margin-top:3px;white-space:nowrap}
+.stat .s{color:var(--mu);font-size:12px}
+.btn{appearance:none;background:var(--p3);border:1px solid var(--ln);color:var(--tx);padding:9px 14px;border-radius:10px;font:700 14px Manrope,sans-serif;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.btn:hover{border-color:#36506a}
+.btn.pri{background:var(--ac);color:#04140d;border-color:transparent}
+.btn.pri:hover{filter:brightness(1.07)}
+.btn.dan{color:var(--ba)}
+.btn.sm{padding:5px 10px;font-size:12.5px;border-radius:8px}
+.btn.ic{padding:5px 9px;min-width:32px;justify-content:center}
+.btn:disabled{opacity:.5;cursor:default}
+input,select,textarea{background:var(--p2);border:1px solid var(--ln);color:var(--tx);border-radius:9px;padding:8px 10px;font:inherit;min-width:0;max-width:100%}
+input:focus,select:focus,textarea:focus{outline:2px solid rgba(46,229,157,.45);outline-offset:0;border-color:transparent}
+textarea{width:100%;font-family:var(--mono);font-size:12px}
+label.f{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--mu);font-weight:600}
+label.f input,label.f select{color:var(--tx);font-weight:500}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.hint{font-size:12px;color:var(--mu);font-weight:500}
+.chip{display:inline-flex;gap:5px;align-items:baseline;background:var(--p2);border:1px solid var(--ln);border-radius:8px;padding:3px 8px;font:12.5px var(--mono);white-space:nowrap}
+.chip b{font:700 11.5px Manrope,sans-serif;color:var(--mu)}
+.chip.v{border-color:rgba(46,229,157,.5);background:var(--acd)}
+.badge{display:inline-block;font:800 11.5px Manrope,sans-serif;padding:3px 9px;border-radius:999px;background:var(--acd);color:var(--ac);white-space:nowrap}
+.badge.w{background:var(--wad);color:var(--wa)}
+.badge.b{background:var(--bad);color:var(--ba)}
+.badge.g{background:var(--p3);color:var(--mu)}
+.alert{border-radius:12px;padding:12px 14px;font-size:14px;border:1px solid}
+.alert.w{background:var(--wad);border-color:rgba(255,181,71,.35)}
+.alert.b{background:var(--bad);border-color:rgba(255,107,107,.35)}
+.alert.i{background:rgba(99,168,255,.08);border-color:rgba(99,168,255,.3)}
+.seg{display:inline-flex;background:var(--p2);border:1px solid var(--ln);border-radius:10px;padding:3px}
+.seg button{appearance:none;border:0;background:none;color:var(--mu);font:700 13px Manrope,sans-serif;padding:6px 11px;border-radius:7px;cursor:pointer}
+.seg button.on{background:var(--p3);color:var(--tx)}
+/* fixtures */
+.fx{padding:0;overflow:hidden}
+.fx-h{padding:13px 15px;cursor:pointer;display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
+.fx-h:hover{background:#131d26}
+.fx-meta{font-size:12px;color:var(--mu);font-weight:600}
+.fx-teams{font-weight:800;font-size:15.5px;grid-column:1/2}
+.fx-teams span{color:var(--mu);font-weight:500;margin:0 6px}
+.fx-probs{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:6px}
+.fx-side{grid-row:1/3;grid-column:2;text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.fx-b{border-top:1px solid var(--ln);padding:12px 15px 15px;background:#0f161d}
+table.mk{width:100%;border-collapse:collapse;font-size:13.5px}
+table.mk th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);text-align:left;font-weight:700;padding:6px 6px}
+table.mk td{padding:6px 6px;border-top:1px solid #1a2631;vertical-align:middle}
+table.mk tr.grp td{color:var(--mu);font-size:11.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;padding-top:12px;border-top:0}
+table.mk tr.val td{background:var(--acd)}
+table.mk tr.val td:first-child{box-shadow:inset 3px 0 0 var(--ac)}
+td.n{font-family:var(--mono);white-space:nowrap}
+td .sub{display:block;color:var(--mu);font-size:11.5px;font-family:var(--mono)}
+.odd{width:78px;font-family:var(--mono);text-align:center;padding:7px 6px}
+.odd.has{border-color:rgba(99,168,255,.6)}
+table.dt{width:100%;border-collapse:collapse;font-size:13.5px}
+table.dt th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mu);text-align:left;padding:7px 8px;font-weight:700;border-bottom:1px solid var(--ln)}
+table.dt td{padding:8px;border-bottom:1px solid #1a2631}
+table.dt td.n,table.dt th.n{text-align:right;font-family:var(--mono)}
+.scroll{overflow-x:auto}
+/* tipy */
+.pk-top{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--mu);font-weight:600}
+.pk-m{margin-top:6px;font-size:15px}
+.pk-m b{color:var(--tx)}
+.pk-g{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0 8px}
+.pk-g>div{background:var(--p2);border:1px solid var(--ln);border-radius:10px;padding:7px 9px}
+.pk-g .l{font-size:10.5px;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.pk-g .v{font:600 16px var(--mono)}
+.pk-g .min{border-color:rgba(46,229,157,.55);background:var(--acd)}
+.pk-g .min .v{color:var(--ac)}
+.pk-in{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--ln)}
+.dots{letter-spacing:2px;color:var(--ac);font-size:11px}
+.dots i{color:#2b3a48;font-style:normal}
+@media(max-width:560px){.pk-g{grid-template-columns:repeat(2,1fr)}}
+/* bets */
+.bet{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:12px 14px;border-bottom:1px solid var(--ln)}
+.bet:last-child{border-bottom:0}
+.bet .ev{font-weight:800}
+.bet .act{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:4px}
+.bet .pl{font:600 15px var(--mono);text-align:right}
+canvas.ch{width:100%;height:210px;display:block}
+.prog{height:6px;background:var(--p3);border-radius:9px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--ac);width:0;transition:width .15s}
+.drop{border:1.5px dashed #36506a;border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:.15s}
+.drop.on,.drop:hover{border-color:var(--ac);background:var(--acd)}
+.steps{counter-reset:s;display:grid;gap:10px;margin-top:10px}
+.steps>div{counter-increment:s;display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start}
+.steps>div::before{content:counter(s);display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--p3);font:700 13px var(--mono);color:var(--ac)}
+.list>*+*{border-top:1px solid var(--ln)}
+.li{display:flex;gap:10px;align-items:center;padding:10px 0;flex-wrap:wrap}
+.foot{color:var(--mu);font-size:12px;text-align:center;padding:10px 0 0}
+/* modal */
+.ov{position:fixed;inset:0;background:rgba(3,6,9,.66);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.md{background:var(--p1);border:1px solid var(--ln);border-radius:18px 18px 0 0;width:100%;max-width:540px;max-height:92vh;overflow:auto;padding:18px 18px calc(18px + env(safe-area-inset-bottom))}
+.md h2{margin-bottom:10px}
+@media(min-width:620px){.ov{align-items:center}.md{border-radius:18px}}
+#toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:80;background:var(--p3);border:1px solid var(--ln);padding:10px 16px;border-radius:12px;font-weight:600;font-size:14px;box-shadow:0 8px 30px rgba(0,0,0,.4);max-width:90vw;opacity:0;pointer-events:none;transition:opacity .2s}
+#toast.on{opacity:1}
+#toast.bad{border-color:var(--ba)}
+@media(max-width:560px){
+  .stat .v{font-size:17px}
+  .fx-teams{font-size:14.5px}
+  .odd{width:64px}
+  table.mk{font-size:12.5px}
+  table.mk td,table.mk th{padding:5px 3px}
+  .hide-m{display:none}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="top-in">
+    <div class="logo"><i>EV</i>Analyzátor kurzov</div>
+    <nav class="tabs" id="tabs">
+      <button class="tab" data-t="tipy"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2"/></svg>Tipy</button>
+      <button class="tab" data-t="prehlad"><svg viewBox="0 0 24 24"><path d="M3 12l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Prehľad</button>
+      <button class="tab" data-t="zapasy"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7l4 3-1.5 5h-5L8 10z"/></svg>Zápasy</button>
+      <button class="tab" data-t="dennik"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>Denník</button>
+      <button class="tab" data-t="backtest"><svg viewBox="0 0 24 24"><path d="M4 19h16"/><path d="M6 15l4-5 3 3 5-7"/></svg>Backtest</button>
+      <button class="tab" data-t="data"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg>Dáta</button>
+    </nav>
+    <div class="bank" id="bankPill" title="Aktuálny bankroll"><span>Bankroll</span><b id="bankVal">–</b></div>
+  </div>
+</header>
+
+<main>
+  <section class="view" id="v-tipy"></section>
+  <section class="view" id="v-prehlad" hidden></section>
+  <section class="view" id="v-zapasy" hidden></section>
+  <section class="view" id="v-dennik" hidden></section>
+  <section class="view" id="v-backtest" hidden></section>
+  <section class="view" id="v-data" hidden></section>
+</main>
+<div id="toast"></div>
+<div id="modalRoot"></div>
+
+<script>
+'use strict';
+/* ================= helpers ================= */
+const $=(s,e=document)=>e.querySelector(s), $$=(s,e=document)=>[...e.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const nf=(x,d=2)=>(x==null||!isFinite(x))?'–':x.toLocaleString('sk-SK',{minimumFractionDigits:d,maximumFractionDigits:d});
+const pc=(x,d=1)=>(x==null||!isFinite(x))?'–':nf(x*100,d)+' %';
+const eur=x=>(x==null||!isFinite(x))?'–':nf(x,2)+' €';
+const sg=(x,f)=>(x==null||!isFinite(x))?'–':(x>0?'+':'')+f(x);
+const cls=x=>x>0?'pos':x<0?'neg':'';
+const num=v=>{if(v==null)return null;const n=parseFloat(String(v).replace(',','.').replace(/\s/g,''));return isFinite(n)?n:null};
+const pad=n=>String(n).padStart(2,'0');
+const localISO=(dt=new Date())=>dt.getFullYear()+'-'+pad(dt.getMonth()+1)+'-'+pad(dt.getDate());
+const dayNum=iso=>Date.UTC(+iso.slice(0,4),+iso.slice(5,7)-1,+iso.slice(8,10))/864e5;
+const addDays=(iso,n)=>new Date((dayNum(iso)+n)*864e5).toISOString().slice(0,10);
+const WD=['ne','po','ut','st','št','pi','so'];
+const skD=iso=>{if(!iso)return '';const[y,m,d]=iso.split('-');return `${+d}. ${+m}. ${y}`};
+const skDw=iso=>{if(!iso)return '';const w=WD[new Date(dayNum(iso)*864e5).getUTCDay()];const[,m,d]=iso.split('-');return `${w} ${+d}. ${+m}.`};
+const key=m=>m.lg+'|'+m.d+'|'+m.h+'|'+m.a;
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function parseDate(s){
+  if(!s)return null;s=s.trim();
+  let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);if(m)return `${m[1]}-${m[2]}-${m[3]}`;
+  m=s.match(/^(\d{1,2})[\/.](\d{1,2})[\/.](\d{2,4})$/);
+  if(m){let y=+m[3];if(y<100)y+=y>70?1900:2000;return `${y}-${pad(m[2])}-${pad(m[1])}`}
+  return null;
+}
+function parseCSV(text){
+  text=text.replace(/^﻿/,'');
+  const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){if(c==='"'){if(text[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;
+    else if(c===','){row.push(f);f=''}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&text[i+1]==='\n')i++;row.push(f);rows.push(row);row=[];f=''}
+    else f+=c;
+  }
+  if(f!==''||row.length){row.push(f);rows.push(row)}
+  return rows.filter(r=>r.some(x=>x.trim()!==''));
+}
+let toastT;
+function toast(msg,kind){const t=$('#toast');t.textContent=msg;t.className='on'+(kind==='bad'?' bad':'');clearTimeout(toastT);toastT=setTimeout(()=>t.className='',3200)}
+
+/* ================= storage ================= */
+const store={
+  get(k,d){try{const v=localStorage.getItem('ka1_'+k);return v?JSON.parse(v):d}catch(e){return d}},
+  set(k,v){try{localStorage.setItem('ka1_'+k,JSON.stringify(v));return true}catch(e){toast('Uloženie zlyhalo – úložisko prehliadača je plné alebo zablokované. Zmaž staré ligy alebo urob zálohu.','bad');return false}}
+};
+const DEF={bankroll:500,kelly:0.25,maxStake:3,minEdge:5,w:0.6,halfLife:240,margin:7,minOdds:1.5,maxOdds:6,monthLimit:100};
+let S=Object.assign({},DEF,store.get('settings',{}));
+let matches=store.get('matches',[]),fixtures=store.get('fixtures',[]),bets=store.get('bets',[]),nike=store.get('nike',{});
+let ui=Object.assign({lg:'',per:'7',onlyVal:false,betF:'open',open:{}},store.get('ui',{}));
+let ver=1;
+const saveM=()=>store.set('matches',matches), saveF=()=>store.set('fixtures',fixtures), saveB=()=>{store.set('bets',bets);dirty()}, saveN=()=>{store.set('nike',nike);dirty()}, saveS=()=>{store.set('settings',S);dirty()}, saveU=()=>store.set('ui',ui);
+
+const LEAGUES={E0:'Anglicko – Premier League',E1:'Anglicko – Championship',E2:'Anglicko – League One',E3:'Anglicko – League Two',EC:'Anglicko – National League',SC0:'Škótsko – Premiership',SC1:'Škótsko – Championship',D1:'Nemecko – Bundesliga',D2:'Nemecko – 2. Bundesliga',I1:'Taliansko – Serie A',I2:'Taliansko – Serie B',SP1:'Španielsko – La Liga',SP2:'Španielsko – Segunda',F1:'Francúzsko – Ligue 1',F2:'Francúzsko – Ligue 2',N1:'Holandsko – Eredivisie',B1:'Belgicko – Pro League',P1:'Portugalsko – Primeira Liga',T1:'Turecko – Süper Lig',G1:'Grécko – Super League',DEMO:'DEMO liga (vymyslené tímy)'};
+const lgName=c=>LEAGUES[c]||c;
+const MAIN_LG=['E0','E1','D1','I1','SP1','F1','N1','P1','B1','T1','SC0','D2','I2','SP2','F2','E2'];
+
+/* ================= markets ================= */
+const MK=[
+  {k:'H',g:'1X2',lb:'1',ln:'1 – výhra domácich',win:(h,a)=>h>a},
+  {k:'D',g:'1X2',lb:'X',ln:'X – remíza',win:(h,a)=>h===a},
+  {k:'A',g:'1X2',lb:'2',ln:'2 – výhra hostí',win:(h,a)=>h<a},
+  {k:'1X',g:'DC',lb:'10',ln:'10 – domáci vyhrajú alebo remíza',win:(h,a)=>h>=a},
+  {k:'12',g:'DC',lb:'12',ln:'12 – nebude remíza',win:(h,a)=>h!==a},
+  {k:'X2',g:'DC',lb:'02',ln:'02 – remíza alebo hostia vyhrajú',win:(h,a)=>h<=a},
+  {k:'O15',g:'OU15',lb:'+1,5',ln:'Viac ako 1,5 gólu',win:(h,a)=>h+a>1.5},
+  {k:'U15',g:'OU15',lb:'−1,5',ln:'Menej ako 1,5 gólu',win:(h,a)=>h+a<1.5},
+  {k:'O25',g:'OU25',lb:'+2,5',ln:'Viac ako 2,5 gólu',win:(h,a)=>h+a>2.5},
+  {k:'U25',g:'OU25',lb:'−2,5',ln:'Menej ako 2,5 gólu',win:(h,a)=>h+a<2.5},
+  {k:'O35',g:'OU35',lb:'+3,5',ln:'Viac ako 3,5 gólu',win:(h,a)=>h+a>3.5},
+  {k:'U35',g:'OU35',lb:'−3,5',ln:'Menej ako 3,5 gólu',win:(h,a)=>h+a<3.5},
+  {k:'BY',g:'BTTS',lb:'Áno',ln:'Oba tímy skórujú – áno',win:(h,a)=>h>0&&a>0},
+  {k:'BN',g:'BTTS',lb:'Nie',ln:'Oba tímy skórujú – nie',win:(h,a)=>!(h>0&&a>0)},
+];
+const MKm=Object.fromEntries(MK.map(m=>[m.k,m]));
+const GROUPS={'1X2':{t:'Výsledok zápasu',ks:['H','D','A'],T:1},'DC':{t:'Dvojitá šanca',ks:['1X','12','X2'],T:2},'OU15':{t:'Góly 1,5',ks:['O15','U15'],T:1},'OU25':{t:'Góly 2,5',ks:['O25','U25'],T:1},'OU35':{t:'Góly 3,5',ks:['O35','U35'],T:1},'BTTS':{t:'Oba tímy skórujú',ks:['BY','BN'],T:1}};
+
+/* ================= model (Dixon–Coles Poisson s časovým útlmom) ================= */
+function tau(x,y,l,m,r){if(x===0&&y===0)return 1-l*m*r;if(x===0&&y===1)return 1+l*r;if(x===1&&y===0)return 1+m*r;if(x===1&&y===1)return 1-r;return 1}
+function pois(l,N){const p=new Float64Array(N+1);p[0]=Math.exp(-l);for(let k=1;k<=N;k++)p[k]=p[k-1]*l/k;return p}
+function withDn(list){for(const m of list){if(m._dn===undefined)Object.defineProperty(m,'_dn',{value:dayNum(m.d),enumerable:false,writable:true})}return list}
+function fitModel(list,ref,halfLife){
+  const R=dayNum(ref),xi=Math.LN2/Math.max(halfLife,7);
+  const idx=new Map(),names=[],D=[];
+  for(const m of list){
+    const age=R-m._dn;if(age<=0)continue;
+    const w=Math.exp(-xi*age);if(w<0.03)continue;
+    let h=idx.get(m.h);if(h==null){h=names.length;idx.set(m.h,h);names.push(m.h)}
+    let a=idx.get(m.a);if(a==null){a=names.length;idx.set(m.a,a);names.push(m.a)}
+    D.push(h,a,m.hg,m.ag,w);
+  }
+  const nM=D.length/5;if(nM<30)return null;
+  const n=names.length;
+  let att=new Float64Array(n).fill(1),def=new Float64Array(n).fill(1);
+  const gw=new Float64Array(n);
+  let sw=0,sh=0,sa=0;
+  for(let i=0;i<D.length;i+=5){const w=D[i+4];sw+=w;sh+=w*D[i+2];sa+=w*D[i+3];gw[D[i]]+=w;gw[D[i+1]]+=w}
+  let cH=sh/sw,cA=sa/sw;const K=3,mb=(cH+cA)/2;
+  const sA=new Float64Array(n),eA=new Float64Array(n),sD=new Float64Array(n),eD=new Float64Array(n);
+  for(let it=0;it<200;it++){
+    sA.fill(0);eA.fill(0);sD.fill(0);eD.fill(0);
+    for(let i=0;i<D.length;i+=5){
+      const h=D[i],a=D[i+1],hg=D[i+2],ag=D[i+3],w=D[i+4];
+      sA[h]+=w*hg;eA[h]+=w*cH*def[a];sA[a]+=w*ag;eA[a]+=w*cA*def[h];
+      sD[a]+=w*hg;eD[a]+=w*cH*att[h];sD[h]+=w*ag;eD[h]+=w*cA*att[a];
+    }
+    const na=new Float64Array(n),nd=new Float64Array(n);let ma=0,md=0,diff=0;
+    for(let t=0;t<n;t++){na[t]=(sA[t]+K*mb)/(eA[t]+K*mb);nd[t]=(sD[t]+K*mb)/(eD[t]+K*mb);ma+=na[t];md+=nd[t]}
+    ma/=n;md/=n;
+    for(let t=0;t<n;t++){na[t]/=ma;nd[t]/=md;diff=Math.max(diff,Math.abs(na[t]-att[t]),Math.abs(nd[t]-def[t]))}
+    att=na;def=nd;
+    let ph=0,pa=0;
+    for(let i=0;i<D.length;i+=5){const h=D[i],a=D[i+1],w=D[i+4];ph+=w*att[h]*def[a];pa+=w*att[a]*def[h]}
+    cH=sh/ph;cA=sa/pa;
+    if(diff<1e-6)break;
+  }
+  let rho=0,bll=-Infinity;
+  for(let r=-0.2;r<=0.1001;r+=0.01){
+    let ll=0,ok=true;
+    for(let i=0;i<D.length;i+=5){
+      const hg=D[i+2],ag=D[i+3];if(hg>1||ag>1)continue;
+      const h=D[i],a=D[i+1],l=cH*att[h]*def[a],m=cA*att[a]*def[h],t=tau(hg,ag,l,m,r);
+      if(t<=0){ok=false;break}ll+=D[i+4]*Math.log(t);
+    }
+    if(ok&&ll>bll){bll=ll;rho=r}
+  }
+  return {idx,names,att,def,cH,cA,rho:Math.round(rho*100)/100,gw,n:nM,ref};
+}
+function predict(md,h,a){
+  if(!md)return null;
+  const i=md.idx.get(h),j=md.idx.get(a);if(i==null||j==null)return null;
+  const l=md.cH*md.att[i]*md.def[j],m=md.cA*md.att[j]*md.def[i];
+  const N=10,ph=pois(l,N),pa=pois(m,N);
+  let H=0,Dr=0,A=0,O15=0,O25=0,O35=0,BY=0,tot=0;const top=[];
+  for(let x=0;x<=N;x++)for(let y=0;y<=N;y++){
+    let p=ph[x]*pa[y];if(x<2&&y<2)p*=tau(x,y,l,m,md.rho);
+    tot+=p;if(x>y)H+=p;else if(x===y)Dr+=p;else A+=p;
+    const g=x+y;if(g>1)O15+=p;if(g>2)O25+=p;if(g>3)O35+=p;if(x>0&&y>0)BY+=p;
+    if(x<6&&y<6)top.push([x,y,p]);
+  }
+  H/=tot;Dr/=tot;A/=tot;O15/=tot;O25/=tot;O35/=tot;BY/=tot;
+  top.sort((u,v)=>v[2]-u[2]);
+  return {l,m,H,D:Dr,A,'1X':H+Dr,'12':H+A,X2:Dr+A,O15,U15:1-O15,O25,U25:1-O25,O35,U35:1-O35,BY,BN:1-BY,
+    top:top.slice(0,5).map(t=>[t[0],t[1],t[2]/tot]),low:Math.min(md.gw[i],md.gw[j])<6,gH:md.gw[i],gA:md.gw[j]};
+}
+const lgCache=new Map(),mdCache=new Map();
+function leagueList(lg){
+  const c=lgCache.get(lg);if(c&&c.v===ver)return c.list;
+  const list=withDn(matches.filter(m=>m.lg===lg)).sort((x,y)=>x._dn-y._dn);
+  lgCache.set(lg,{v:ver,list});return list;
+}
+function getModel(lg,ref){
+  const k=lg+'|'+ref+'|'+S.halfLife+'|'+ver;
+  if(mdCache.has(k))return mdCache.get(k);
+  const md=fitModel(leagueList(lg),ref,S.halfLife);mdCache.set(k,md);return md;
+}
+function modelRef(f){const t=localISO();return f.d>t?t:f.d}
+
+/* ================= pricing / value ================= */
+function marketFair(odds,margin){
+  const pm={},mg={};
+  for(const[g,G]of Object.entries(GROUPS)){
+    const ks=G.ks,all=ks.every(k=>odds[k]>1);
+    if(all){const s=ks.reduce((t,k)=>t+1/odds[k],0);ks.forEach(k=>pm[k]=G.T*(1/odds[k])/s);mg[g]=s/G.T-1}
+    else ks.forEach(k=>{if(odds[k]>1)pm[k]=Math.min(.99,(1/odds[k])/(1+margin/100))});
+  }
+  if(odds.H>1&&odds.D>1&&odds.A>1&&!GROUPS.DC.ks.every(k=>odds[k]>1)){pm['1X']=pm.H+pm.D;pm['12']=pm.H+pm.A;pm.X2=pm.D+pm.A}
+  return {pm,mg};
+}
+function price(pred,odds,opt){
+  opt=Object.assign({w:S.w,margin:S.margin,minEdge:S.minEdge,minOdds:S.minOdds,maxOdds:S.maxOdds,kelly:S.kelly,maxStake:S.maxStake,bank:bankNow()},opt||{});
+  const {pm,mg}=marketFair(odds,opt.margin);const out={_mg:mg};
+  for(const m of MK){
+    const o=odds[m.k],pModel=pred?pred[m.k]:null;
+    const r={k:m.k,pModel,fair:pModel?1/pModel:null,o:o>1?o:null,pMkt:pm[m.k]??null};
+    if(r.o&&pModel!=null){
+      r.p=r.pMkt!=null?opt.w*pModel+(1-opt.w)*r.pMkt:pModel;
+      r.ev=r.p*r.o-1;
+      const kf=Math.max(0,r.ev/(r.o-1))*opt.kelly;
+      r.frac=Math.min(kf,opt.maxStake/100);
+      r.stake=Math.floor(opt.bank*r.frac*2)/2;
+      r.value=r.ev>=opt.minEdge/100&&r.o>=opt.minOdds&&r.o<=opt.maxOdds&&r.frac>0;
+    }
+    out[m.k]=r;
+  }
+  return out;
+}
+function bestOf(pr){let b=null;for(const m of MK){const r=pr[m.k];if(r&&r.value&&(!b||r.ev>b.ev))b=r}return b}
+
+/* ================= bets / bankroll ================= */
+function profit(b){if(b.status==='won')return b.stake*(b.odds-1);if(b.status==='lost')return -b.stake;return 0}
+function bankNow(){return S.bankroll+bets.reduce((t,b)=>t+profit(b),0)}
+function monthPL(){const mo=localISO().slice(0,7);return bets.filter(b=>b.status!=='open'&&(b.settled||b.d||'').slice(0,7)===mo).reduce((t,b)=>t+profit(b),0)}
+function betStats(list){
+  const st=list.filter(b=>b.status==='won'||b.status==='lost');
+  const staked=st.reduce((t,b)=>t+b.stake,0),pl=list.reduce((t,b)=>t+profit(b),0);
+  const won=st.filter(b=>b.status==='won').length;
+  const evs=list.filter(b=>b.ev!=null);
+  const clv=list.filter(b=>b.closing>1);
+  return {n:list.length,open:list.filter(b=>b.status==='open').length,settled:st.length,staked,pl,roi:staked?pl/staked:null,hit:st.length?won/st.length:null,
+    avgOdds:st.length?st.reduce((t,b)=>t+b.odds,0)/st.length:null,avgEV:evs.length?evs.reduce((t,b)=>t+b.ev,0)/evs.length:null,
+    clv:clv.length?clv.reduce((t,b)=>t+(b.odds/b.closing-1),0)/clv.length:null,nClv:clv.length};
+}
+function autoSettle(){
+  const mp=new Map(matches.map(m=>[key(m),m]));let n=0;
+  for(const b of bets){
+    if(b.status!=='open'||!b.k||!b.lg)continue;
+    const m=mp.get(key(b));if(!m)continue;
+    const mk=MKm[b.k];if(!mk)continue;
+    b.status=mk.win(m.hg,m.ag)?'won':'lost';b.settled=localISO();b.auto=`${m.hg}:${m.ag}`;n++;
+  }
+  if(n)saveB();return n;
+}
+
+/* ================= import ================= */
+function importCSVText(text,fname){
+  const rows=parseCSV(text);if(rows.length<2)return{added:0,updated:0,fx:0};
+  const hdr=rows[0].map(s=>s.trim());const col={};hdr.forEach((h,i)=>{if(!(h in col))col[h]=i});
+  if(!('HomeTeam' in col||'Home' in col))throw new Error('Súbor '+fname+' nevyzerá ako CSV z football-data.co.uk (chýba stĺpec HomeTeam/Home).');
+  const g=(r,ns)=>{for(const n of ns){const i=col[n];if(i!=null){const v=(r[i]??'').trim();if(v!=='')return v}}return ''};
+  const o=(r,ns)=>{for(const n of ns){const i=col[n];if(i!=null){const v=num(r[i]);if(v&&v>1)return v}}return null};
+  const mIdx=new Map(matches.map((m,i)=>[key(m),i])),fIdx=new Map(fixtures.map((f,i)=>[key(f),i]));
+  const base=fname.replace(/\.[^.]+$/,'');let added=0,updated=0,fx=0;
+  for(let k=1;k<rows.length;k++){
+    const r=rows[k];
+    let lg=g(r,['Div']);
+    if(!lg){const c=g(r,['Country']),l=g(r,['League']);lg=c?(c+(l?' – '+l:'')):base}
+    const d=parseDate(g(r,['Date'])),h=g(r,['HomeTeam','Home']),a=g(r,['AwayTeam','Away']);
+    if(!d||!h||!a)continue;
+    const rec={lg,d,h,a,
+      oH:o(r,['B365H','AvgH','BbAvH','PSH','MaxH']),oD:o(r,['B365D','AvgD','BbAvD','PSD','MaxD']),oA:o(r,['B365A','AvgA','BbAvA','PSA','MaxA']),
+      oO:o(r,['B365>2.5','Avg>2.5','BbAv>2.5','P>2.5']),oU:o(r,['B365<2.5','Avg<2.5','BbAv<2.5','P<2.5']),
+      cH:o(r,['PSCH','AvgCH','B365CH']),cD:o(r,['PSCD','AvgCD','B365CD']),cA:o(r,['PSCA','AvgCA','B365CA']),
+      cO:o(r,['PC>2.5','AvgC>2.5','B365C>2.5']),cU:o(r,['PC<2.5','AvgC<2.5','B365C<2.5'])};
+    for(const kk in rec)if(rec[kk]==null)delete rec[kk];
+    const hg=g(r,['FTHG','HG']),ag=g(r,['FTAG','AG']);
+    const kk=key(rec);
+    if(hg!==''&&ag!==''&&isFinite(+hg)&&isFinite(+ag)){
+      rec.hg=+hg;rec.ag=+ag;
+      if(mIdx.has(kk)){matches[mIdx.get(kk)]=rec;updated++}else{mIdx.set(kk,matches.length);matches.push(rec);added++}
+      if(fIdx.has(kk))fixtures[fIdx.get(kk)]=null;
+    }else{
+      const t=g(r,['Time']);if(t)rec.t=t;
+      if(mIdx.has(kk))continue;
+      if(fIdx.has(kk)&&fixtures[fIdx.get(kk)])Object.assign(fixtures[fIdx.get(kk)],rec);
+      else{fIdx.set(kk,fixtures.length);fixtures.push(rec);fx++}
+    }
+  }
+  fixtures=fixtures.filter(Boolean);
+  return{added,updated,fx};
+}
+function pruneFixtures(){const lim=addDays(localISO(),-2);const before=fixtures.length;fixtures=fixtures.filter(f=>f.d>=lim);return before-fixtures.length}
+async function importFiles(files){
+  let A=0,U=0,F=0,err=[];
+  for(const file of files){
+    try{const txt=await file.text();const r=importCSVText(txt,file.name);A+=r.added;U+=r.updated;F+=r.fx}catch(e){err.push(e.message)}
+  }
+  pruneFixtures();ver++;
+  const okM=saveM(),okF=saveF();
+  const st=autoSettle();
+  if(err.length)toast(err[0],'bad');
+  else toast(`Importované: ${A} nových zápasov, ${U} aktualizovaných, ${F} budúcich zápasov`+(st?` · vyhodnotených stávok: ${st}`:''));
+  renderAll();
+}
+
+/* ================= demo ================= */
+function randn(){let u=0,v=0;while(!u)u=Math.random();while(!v)v=Math.random();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
+function rpois(l){const L=Math.exp(-l);let k=0,p=1;do{k++;p*=Math.random()}while(p>L);return k-1}
+function roundRobin(n){const t=[...Array(n).keys()],R=[];for(let r=0;r<n-1;r++){const rd=[];for(let i=0;i<n/2;i++){const a=t[i],b=t[n-1-i];rd.push(r%2?[b,a]:[a,b])}R.push(rd);t.splice(1,0,t.pop())}return R.concat(R.map(rd=>rd.map(([a,b])=>[b,a])))}
+function makeDemo(){
+  const T=['FK Sokoli','MŠK Vlci','TJ Medvede','AS Rysy','FC Orly','SK Jelene','FK Kamzíky','TJ Bobri','FC Líšky','MFK Sovy','SK Býci','FK Svište','AS Vydry','TJ Jastraby','FC Kone','SK Zubri','MŠK Tetrovy','FK Kuny'];
+  const str=T.map(()=>({a:Math.exp(randn()*.24),d:Math.exp(randn()*.2)}));
+  const today=localISO(),end=addDays(today,9);let date=addDays(today,-560);
+  matches=matches.filter(m=>m.lg!=='DEMO');fixtures=fixtures.filter(f=>f.lg!=='DEMO');
+  const rr=roundRobin(T.length);let stop=false;
+  for(let s=0;s<4&&!stop;s++){
+    for(const rd of rr){
+      for(const[i,j]of rd){
+        const l=1.48*str[i].a*str[j].d,m=1.13*str[j].a*str[i].d;
+        const ph=pois(l,10),pa=pois(m,10);let H=0,Dd=0,A=0,O=0;
+        for(let x=0;x<=10;x++)for(let y=0;y<=10;y++){const p=ph[x]*pa[y];if(x>y)H+=p;else if(x===y)Dd+=p;else A+=p;if(x+y>2)O+=p}
+        const q=(p,mg,s)=>Math.max(1.01,Math.round(100/(p*mg)*Math.exp(randn()*s))/100);
+        const rec={lg:'DEMO',d:date,h:T[i],a:T[j],oH:q(H,1.055,.05),oD:q(Dd,1.055,.05),oA:q(A,1.055,.05),oO:q(O,1.06,.04),oU:q(1-O,1.06,.04),
+          cH:q(H,1.025,.015),cD:q(Dd,1.025,.015),cA:q(A,1.025,.015),cO:q(O,1.03,.015),cU:q(1-O,1.03,.015)};
+        if(date<today){rec.hg=rpois(l);rec.ag=rpois(m);matches.push(rec)}
+        else{rec.t=['15:00','17:30','20:00'][Math.floor(Math.random()*3)];delete rec.cH;delete rec.cD;delete rec.cA;delete rec.cO;delete rec.cU;fixtures.push(rec)}
+      }
+      for(const t of str){t.a*=Math.exp(randn()*.02);t.d*=Math.exp(randn()*.02)}
+      date=addDays(date,7);if(date>end){stop=true;break}
+    }
+    date=addDays(date,35);if(date>end)stop=true;
+  }
+  ver++;saveM();saveF();toast('Demo liga načítaná – vymyslené tímy na vyskúšanie.');renderAll();
+}
+
+/* ================= modal ================= */
+function modal(html,mount){
+  const root=$('#modalRoot');root.innerHTML=`<div class="ov"><div class="md">${html}</div></div>`;
+  const ov=$('.ov',root);ov.addEventListener('click',e=>{if(e.target===ov)closeModal()});
+  $$('[data-close]',root).forEach(b=>b.onclick=closeModal);
+  if(mount)mount($('.md',root));
+}
+function closeModal(){$('#modalRoot').innerHTML=''}
+function confirmBox(title,text,okLabel,fn,danger){
+  modal(`<h2>${esc(title)}</h2><p class="mu">${text}</p><div class="row" style="margin-top:16px;justify-content:flex-end"><button class="btn" data-close>Zrušiť</button><button class="btn ${danger?'dan':'pri'}" id="cOk">${esc(okLabel)}</button></div>`,
+    md=>{$('#cOk',md).onclick=()=>{closeModal();fn()}});
+}
+
+/* ================= chart ================= */
+function drawChart(cv,ys,labelFmt){
+  if(!cv)return;
+  const dpr=window.devicePixelRatio||1,w=cv.clientWidth,h=cv.clientHeight;if(!w)return;
+  cv.width=w*dpr;cv.height=h*dpr;const c=cv.getContext('2d');c.scale(dpr,dpr);c.clearRect(0,0,w,h);
+  c.font='12px Manrope, sans-serif';
+  if(ys.length<2){c.fillStyle='#8a9aab';c.fillText('Graf sa zobrazí po vyhodnotení aspoň 2 stávok.',12,h/2);return}
+  const P={l:58,r:12,t:12,b:22};let mn=Math.min(0,...ys),mx=Math.max(0,...ys);if(mx-mn<1e-9){mx+=1;mn-=1}
+  const pr=(mx-mn)*.08;mn-=pr;mx+=pr;
+  const X=i=>P.l+(w-P.l-P.r)*i/(ys.length-1),Y=v=>P.t+(h-P.t-P.b)*(1-(v-mn)/(mx-mn));
+  c.strokeStyle='#1d2935';c.fillStyle='#8a9aab';c.lineWidth=1;c.textAlign='right';c.textBaseline='middle';
+  for(let i=0;i<=4;i++){const v=mn+(mx-mn)*i/4,y=Y(v);c.beginPath();c.moveTo(P.l,y);c.lineTo(w-P.r,y);c.stroke();c.fillText(labelFmt(v),P.l-8,y)}
+  c.setLineDash([4,4]);c.strokeStyle='#3b5063';c.beginPath();c.moveTo(P.l,Y(0));c.lineTo(w-P.r,Y(0));c.stroke();c.setLineDash([]);
+  const last=ys[ys.length-1],col=last>=0?'#2ee59d':'#ff6b6b';
+  const gr=c.createLinearGradient(0,P.t,0,h-P.b);gr.addColorStop(0,last>=0?'rgba(46,229,157,.22)':'rgba(255,107,107,.22)');gr.addColorStop(1,'rgba(0,0,0,0)');
+  c.beginPath();c.moveTo(X(0),Y(0));ys.forEach((v,i)=>c.lineTo(X(i),Y(v)));c.lineTo(X(ys.length-1),Y(0));c.closePath();c.fillStyle=gr;c.fill();
+  c.beginPath();ys.forEach((v,i)=>i?c.lineTo(X(i),Y(v)):c.moveTo(X(i),Y(v)));c.strokeStyle=col;c.lineWidth=2;c.stroke();
+  c.textAlign='left';c.fillStyle='#8a9aab';c.textBaseline='alphabetic';c.fillText('1',P.l,h-6);c.textAlign='right';c.fillText(String(ys.length-1),w-P.r,h-6);
+}
+const charts={};
+window.addEventListener('resize',()=>{for(const k in charts){const c=charts[k];drawChart(document.getElementById(k),c.ys,c.fmt)}});
+function chart(id,ys,fmt){charts[id]={ys,fmt};requestAnimationFrame(()=>drawChart(document.getElementById(id),ys,fmt))}
+
+/* ================= fixtures evaluation ================= */
+function nikeOdds(f){return nike[key(f)]||{}}
+function refOdds(f){return {H:f.oH,D:f.oD,A:f.oA,O25:f.oO,U25:f.oU}}
+function evalFx(f){
+  const md=getModel(f.lg,modelRef(f)),pred=predict(md,f.h,f.a);
+  const nk=nikeOdds(f);
+  const pr=price(pred,nk);
+  const rf=price(pred,refOdds(f));
+  return {f,md,pred,pr,best:pred?bestOf(pr):null,refBest:pred?bestOf(rf):null,rf,nNike:Object.keys(nk).length};
+}
+function fxFiltered(){
+  const t=localISO(),lim=ui.per==='all'?'9999':addDays(t,+ui.per);
+  return fixtures.filter(f=>(!ui.lg||f.lg===ui.lg)&&f.d>=addDays(t,-1)&&f.d<=lim)
+    .sort((a,b)=>(a.d+(a.t||'')).localeCompare(b.d+(b.t||''))||a.lg.localeCompare(b.lg));
+}
+
+/* ================= render: header ================= */
+function renderHeader(){
+  const b=bankNow();$('#bankVal').textContent=eur(b);$('#bankVal').className=b>=S.bankroll?'':'neg';
+}
+
+/* ================= render: prehľad ================= */
+function renderDash(){
+  const el=$('#v-prehlad');const st=betStats(bets);const bank=bankNow();
+  const mpl=monthPL(),overLimit=S.monthLimit>0&&-mpl>=S.monthLimit;
+  const evs=fixtures.filter(f=>f.d>=localISO()).map(evalFx);
+  const tips=[];for(const e of evs)for(const m of MK){const r=e.pr[m.k];if(r&&r.value)tips.push({e,r})}
+  tips.sort((a,b)=>b.r.ev-a.r.ev);
+  const cands=[];for(const e of evs){if(e.nNike)continue;for(const k of['H','D','A','O25','U25']){const r=e.rf[k];if(r&&r.value)cands.push({e,r})}}
+  cands.sort((a,b)=>b.r.ev-a.r.ev);
+  const openB=bets.filter(b=>b.status==='open');
+  const settledSorted=bets.filter(b=>b.status!=='open').sort((a,b)=>((a.settled||a.d||'')+a.id).localeCompare((b.settled||b.d||'')+b.id));
+  let cum=0;const ys=[0,...settledSorted.map(b=>cum+=profit(b))];
+  const empty=!matches.length;
+  el.innerHTML=`
+  ${empty?`<div class="card"><h2>Začni tu</h2><p class="mu">Aplikácia si z výsledkov zápasov spočíta silu útoku a obrany každého tímu, odhadne pravdepodobnosti a porovná ich s kurzami Niké. Stávka sa oplatí len vtedy, keď je pravdepodobnosť vyššia, než naznačuje kurz.</p>
+    <div class="steps"><div><div><b>Nahraj dáta</b><div class="mu sm">V záložke Dáta stiahni CSV výsledkov (zadarmo z football-data.co.uk) a nahraj ich. Pridaj aj súbor <span class="mono">fixtures.csv</span> s budúcimi zápasmi.</div></div></div>
+    <div><div><b>Zadaj kurzy Niké</b><div class="mu sm">V záložke Zápasy otvor zápas a prepíš kurzy z Niké. Zelené riadky sú stávky s kladnou očakávanou hodnotou (value).</div></div></div>
+    <div><div><b>Zapisuj a vyhodnocuj</b><div class="mu sm">Stávky ukladaj do denníka. Po importe nových výsledkov sa vyhodnotia samy. Backtest ukáže, či by model v minulosti zarábal.</div></div></div></div>
+    <div class="row" style="margin-top:14px"><button class="btn pri" data-go="data">Nahrať dáta</button><button class="btn" id="demoBtn">Vyskúšať na demo dátach</button></div></div>`:''}
+  ${overLimit?`<div class="alert b"><b>Dosiahol si mesačný limit straty</b> (${eur(-mpl)} z ${eur(S.monthLimit)}). Odporúčanie aplikácie: do konca mesiaca už nestávkuj. Limit nastavíš v záložke Dáta.</div>`:''}
+  <div class="stats">
+    <div class="stat"><div class="l">Bankroll</div><div class="v ${bank>=S.bankroll?'':'neg'}">${eur(bank)}</div><div class="s">štart ${eur(S.bankroll)}</div></div>
+    <div class="stat"><div class="l">Zisk / strata</div><div class="v ${cls(st.pl)}">${sg(st.pl,eur)}</div><div class="s">tento mesiac ${sg(mpl,eur)}</div></div>
+    <div class="stat"><div class="l">ROI</div><div class="v ${cls(st.roi)}">${sg(st.roi,pc)}</div><div class="s">vsadené ${eur(st.staked)}</div></div>
+    <div class="stat"><div class="l">Stávky</div><div class="v">${st.settled}<span class="mu" style="font-size:14px"> / ${st.open} otv.</span></div><div class="s">úspešnosť ${pc(st.hit,0)}</div></div>
+    <div class="stat"><div class="l">Priem. EV</div><div class="v ${cls(st.avgEV)}">${sg(st.avgEV,pc)}</div><div class="s">podľa modelu</div></div>
+    <div class="stat"><div class="l">CLV</div><div class="v ${cls(st.clv)}">${sg(st.clv,pc)}</div><div class="s">${st.nClv?st.nClv+' stávok so záver. kurzom':'zadaj záverečné kurzy'}</div></div>
+  </div>
+  <div class="card"><div class="row"><h3>Vývoj zisku</h3><span class="sp"></span><span class="mu xs">€ po každej vyhodnotenej stávke</span></div><canvas class="ch" id="chDash" style="margin-top:8px"></canvas></div>
+  <div class="card"><div class="row"><h3>Value tipy podľa kurzov Niké</h3><span class="sp"></span><button class="btn sm" data-go="zapasy">Všetky zápasy</button></div>
+    ${tips.length?`<div class="list" style="margin-top:6px">${tips.slice(0,8).map(({e,r})=>tipRow(e,r,true)).join('')}</div>`
+      :`<p class="mu sm" style="margin-top:8px">${fixtures.length?'Zatiaľ žiadne. Otvor zápas v záložke Zápasy a zadaj kurzy z Niké – value stávky sa objavia tu.':'Najprv nahraj budúce zápasy (fixtures.csv) alebo pridaj zápas ručne.'}</p>`}
+  </div>
+  ${cands.length?`<div class="card"><div class="row"><h3>Oplatí sa skontrolovať na Niké</h3></div><p class="mu sm">Model vidí výhodu oproti referenčným kurzom trhu (z importovaného súboru). Pozri, aký kurz dáva Niké – ak je podobný alebo vyšší, môže ísť o value.</p>
+    <div class="list">${cands.slice(0,8).map(({e,r})=>tipRow(e,r,false)).join('')}</div></div>`:''}
+  ${openB.length?`<div class="card"><div class="row"><h3>Otvorené stávky</h3><span class="sp"></span><button class="btn sm" data-go="dennik">Denník</button></div><div class="list" style="margin-top:6px">${openB.slice(0,6).map(b=>`<div class="li"><div class="sp"><b>${esc(betEvent(b))}</b><div class="mu xs">${esc(b.label)} · ${skD(b.d)}</div></div><span class="mono">${nf(b.odds)}</span><span class="mono mu">${eur(b.stake)}</span></div>`).join('')}</div></div>`:''}
+  <p class="foot">Len 18+. Model odhaduje pravdepodobnosti, nie istoty – aj value stávky často prehrávajú. Stávkuj len peniaze, ktorých stratu unesieš.</p>`;
+  chart('chDash',ys,v=>nf(v,0)+' €');
+  const db=$('#demoBtn',el);if(db)db.onclick=makeDemo;
+}
+function tipRow(e,r,isNike){
+  const f=e.f,m=MKm[r.k];
+  return `<div class="li"><div class="sp" style="min-width:180px"><b>${esc(f.h)} – ${esc(f.a)}</b><div class="mu xs">${esc(lgName(f.lg))} · ${skDw(f.d)}${f.t?' '+esc(f.t):''}</div></div>
+  <span class="chip v"><b>${esc(m.lb)}</b>${nf(r.o)}</span><span class="badge">EV ${sg(r.ev,pc)}</span>${isNike?`<span class="mono sm">${eur(r.stake)}</span>`:`<span class="mono xs mu">model ${pc(r.pModel)}</span>`}
+  <button class="btn sm" data-openfx="${esc(key(f))}">Otvoriť</button></div>`;
+}
+
+/* ================= render: zápasy ================= */
+function renderFx(){
+  const el=$('#v-zapasy');
+  const lgs=[...new Set(fixtures.map(f=>f.lg))].sort();
+  const allLg=[...new Set(matches.map(m=>m.lg))].sort();
+  const list=fxFiltered();const evs=list.map(evalFx);
+  const shown=ui.onlyVal?evs.filter(e=>e.best||e.refBest):evs;
+  const mpl=monthPL(),overLimit=S.monthLimit>0&&-mpl>=S.monthLimit;
+  el.innerHTML=`
+  <div class="row"><h2>Zápasy</h2><span class="sp"></span><button class="btn sm" id="addFxBtn">+ Pridať zápas</button></div>
+  ${overLimit?`<div class="alert b">Mesačný limit straty je dosiahnutý (${eur(-mpl)}). Analýzy fungujú, ale odporúčame nestávkovať.</div>`:''}
+  <div class="card tight row">
+    <select id="fLg" aria-label="Liga"><option value="">Všetky ligy</option>${lgs.map(l=>`<option value="${esc(l)}" ${ui.lg===l?'selected':''}>${esc(lgName(l))}</option>`).join('')}</select>
+    <div class="seg" id="fPer">${[['1','Dnes+1'],['3','3 dni'],['7','7 dní'],['all','Všetko']].map(([v,t])=>`<button data-v="${v}" class="${ui.per===v?'on':''}">${t}</button>`).join('')}</div>
+    <label class="row sm" style="gap:6px;cursor:pointer"><input type="checkbox" id="fVal" ${ui.onlyVal?'checked':''}> len s value / kandidátom</label>
+  </div>
+  <div class="card tight" id="addFx" hidden>
+    <div class="fgrid">
+      <label class="f">Liga<select id="aLg">${allLg.map(l=>`<option value="${esc(l)}">${esc(lgName(l))}</option>`).join('')}</select></label>
+      <label class="f">Domáci<select id="aH"></select></label>
+      <label class="f">Hostia<select id="aA"></select></label>
+      <label class="f">Dátum<input type="date" id="aD" value="${localISO()}"></label>
+      <label class="f">Čas<input type="time" id="aT" value="18:00"></label>
+    </div>
+    <div class="row" style="margin-top:12px"><button class="btn pri" id="aOk">Pridať</button><span class="hint">Tímy sa ponúkajú z importovaných výsledkov danej ligy.</span></div>
+  </div>
+  ${!fixtures.length?`<div class="card"><p class="mu">Žiadne budúce zápasy. Nahraj <b>fixtures.csv</b> v záložke Dáta alebo pridaj zápas ručne tlačidlom vyššie.</p></div>`:''}
+  ${fixtures.length&&!shown.length?`<div class="card"><p class="mu">V tomto výbere nie sú žiadne zápasy.</p></div>`:''}
+  <div id="fxList" style="display:grid;gap:10px">${shown.map(fxCard).join('')}</div>
+  <p class="foot">Model: Poissonov model s korekciou Dixon–Coles, novšie zápasy majú vyššiu váhu (polčas ${S.halfLife} dní). Výsledná pravdepodobnosť = ${Math.round(S.w*100)} % model + ${Math.round(100-S.w*100)} % férový kurz Niké.</p>`;
+  // events
+  $('#fLg',el).onchange=e=>{ui.lg=e.target.value;saveU();renderFx()};
+  $$('#fPer button',el).forEach(b=>b.onclick=()=>{ui.per=b.dataset.v;saveU();renderFx()});
+  $('#fVal',el).onchange=e=>{ui.onlyVal=e.target.checked;saveU();renderFx()};
+  $('#addFxBtn',el).onclick=()=>{const a=$('#addFx',el);a.hidden=!a.hidden;if(!a.hidden)fillTeams()};
+  const fillTeams=()=>{const lg=$('#aLg',el).value;const ts=[...new Set(matches.filter(m=>m.lg===lg).flatMap(m=>[m.h,m.a]))].sort((a,b)=>a.localeCompare(b,'sk'));
+    const opts=ts.map(t=>`<option>${esc(t)}</option>`).join('');$('#aH',el).innerHTML=opts;$('#aA',el).innerHTML=opts;if(ts.length>1)$('#aA',el).selectedIndex=1};
+  $('#aLg',el).onchange=fillTeams;
+  $('#aOk',el).onclick=()=>{
+    const f={lg:$('#aLg',el).value,h:$('#aH',el).value,a:$('#aA',el).value,d:$('#aD',el).value,t:$('#aT',el).value,custom:1};
+    if(!f.lg||!f.h||!f.a||!f.d){toast('Vyplň ligu, tímy a dátum.','bad');return}
+    if(f.h===f.a){toast('Domáci a hostia musia byť rôzne tímy.','bad');return}
+    if(fixtures.some(x=>key(x)===key(f))){toast('Tento zápas už v zozname je.','bad');return}
+    fixtures.push(f);saveF();ui.open[key(f)]=1;saveU();
+    if(ui.per!=='all'&&f.d>addDays(localISO(),+ui.per))ui.per='all';
+    renderFx();toast('Zápas pridaný.');
+  };
+}
+function fxCard(e){
+  const f=e.f,id=key(f),p=e.pred,isOpen=!!ui.open[id];
+  const chips=p?[['1',p.H],['X',p.D],['2',p.A],['+2,5',p.O25],['BTTS',p.BY]].map(([l,v])=>`<span class="chip"><b>${l}</b>${pc(v,0)}</span>`).join(''):`<span class="badge w">Málo dát pre tento zápas</span>`;
+  return `<div class="card fx" data-id="${esc(id)}">
+    <div class="fx-h" data-act="toggle">
+      <div class="fx-meta">${esc(lgName(f.lg))} · ${skDw(f.d)}${f.t?' · '+esc(f.t):''}${f.custom?' · ručne':''}</div>
+      <div class="fx-side" data-badge>${badgeHtml(e)}</div>
+      <div class="fx-teams">${esc(f.h)}<span>–</span>${esc(f.a)}</div>
+      <div class="fx-probs">${chips}</div>
+    </div>
+    <div class="fx-b" ${isOpen?'':'hidden'}>${isOpen?fxBody(e):''}</div>
+  </div>`;
+}
+function badgeHtml(e){
+  if(e.best)return `<span class="badge">VALUE ${sg(e.best.ev,pc)}</span><span class="xs mu">tip ${esc(MKm[e.best.k].lb)} @ ${nf(e.best.o)}</span>`;
+  if(e.nNike)return `<span class="badge g">bez value</span>`;
+  if(e.refBest)return `<span class="badge w">kandidát</span><span class="xs mu">tip ${esc(MKm[e.refBest.k].lb)} · ref ${nf(e.refBest.o)}</span>`;
+  return '';
+}
+function fxBody(e){
+  const f=e.f,p=e.pred;
+  if(!p){
+    const md=e.md;
+    return `<p class="mu sm">${md?`Tím <b>${esc(md.idx.has(f.h)?f.a:f.h)}</b> nemá v dátach ligy ${esc(lgName(f.lg))} žiadne zápasy. Nahraj výsledky, kde tento tím hral (napr. minulú sezónu jeho ligy).`:`Pre ligu ${esc(lgName(f.lg))} je málo výsledkov (treba aspoň 30 zápasov). Nahraj výsledky tejto ligy v záložke Dáta.`}</p>
+    <div class="row"><button class="btn sm dan" data-act="delfx">Odstrániť zápas</button></div>`;
+  }
+  const nk=nikeOdds(f),ro=refOdds(f);
+  let rows='';
+  for(const[g,G]of Object.entries(GROUPS)){
+    rows+=`<tr class="grp"><td colspan="5">${G.t}${e.pr._mg[g]!=null?` <span class="mono" style="text-transform:none;letter-spacing:0;font-weight:500">· marža Niké ${pc(e.pr._mg[g])}</span>`:''}</td></tr>`;
+    for(const k of G.ks){
+      const r=e.pr[k],m=MKm[k],v=nk[k];
+      rows+=`<tr data-k="${k}" class="${r.value?'val':''}">
+        <td><b>${esc(m.lb)}</b><span class="sub hide-m" style="font-family:var(--sans)">${esc(m.ln.split('–')[1]||'')}</span></td>
+        <td class="n">${pc(r.pModel)}<span class="sub">fér ${nf(r.fair)}</span></td>
+        <td><input class="odd ${v?'has':''}" data-k="${k}" inputmode="decimal" autocomplete="off" value="${v?nf(v):''}" placeholder="${ro[k]?'ref '+nf(ro[k]):'kurz'}"></td>
+        <td class="n" data-c="ev">${evCell(r)}</td>
+        <td><button class="btn sm ic" data-act="bet" data-k="${k}" title="Zapísať stávku" ${r.o?'':'disabled'}>+</button></td></tr>`;
+    }
+  }
+  const top=p.top.map(([x,y,q])=>`${x}:${y} <span class="mu">(${pc(q,0)})</span>`).join(', ');
+  return `${p.low?`<div class="alert w sm" style="margin-bottom:10px">Jeden z tímov má v dátach málo nedávnych zápasov (napr. nováčik ligy). Odhad je menej spoľahlivý – nahraj aj minulú sezónu jeho ligy.</div>`:''}
+  <div class="row sm" style="margin-bottom:6px;gap:14px"><span>Očakávané góly <b class="mono">${nf(p.l)} : ${nf(p.m)}</b></span><span class="mu">Najpravdepodobnejšie skóre: <span class="mono">${top}</span></span></div>
+  <div class="scroll"><table class="mk"><thead><tr><th>Tip</th><th>Model</th><th>Kurz Niké</th><th>EV / vklad</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div class="row" style="margin-top:12px"><button class="btn sm" data-act="clear">Vymazať kurzy</button><button class="btn sm dan" data-act="delfx">Odstrániť zápas</button><span class="sp"></span><span class="hint">Zelený riadok = EV ≥ ${nf(S.minEdge,0)} % a kurz ${nf(S.minOdds)}–${nf(S.maxOdds)}</span></div>`;
+}
+function evCell(r){
+  if(!r.o)return '<span class="mu">–</span>';
+  return `<span class="${cls(r.ev)}">${sg(r.ev,pc)}</span><span class="sub">${r.stake>0?eur(r.stake):'nevsádzať'}</span>`;
+}
+function updateFxCard(card){
+  const f=fixtures.find(x=>key(x)===card.dataset.id);if(!f)return;
+  const e=evalFx(f);
+  $('[data-badge]',card).innerHTML=badgeHtml(e);
+  $$('tr[data-k]',card).forEach(tr=>{const r=e.pr[tr.dataset.k];tr.classList.toggle('val',!!r.value);$('[data-c=ev]',tr).innerHTML=evCell(r);$('[data-act=bet]',tr).disabled=!r.o});
+  $$('tr.grp td',card).forEach((td,i)=>{const g=Object.keys(GROUPS)[i];const G=GROUPS[g];td.innerHTML=`${G.t}${e.pr._mg[g]!=null?` <span class="mono" style="text-transform:none;letter-spacing:0;font-weight:500">· marža Niké ${pc(e.pr._mg[g])}</span>`:''}`});
+  renderHeader();
+}
+let saveNT;
+function onFxInput(ev){
+  const inp=ev.target;if(!inp.classList.contains('odd'))return;
+  const card=inp.closest('.fx');const id=card.dataset.id;const k=inp.dataset.k;const v=num(inp.value);
+  nike[id]=nike[id]||{};
+  if(v&&v>1)nike[id][k]=v;else delete nike[id][k];
+  if(!Object.keys(nike[id]).length)delete nike[id];
+  inp.classList.toggle('has',!!(v&&v>1));
+  clearTimeout(saveNT);saveNT=setTimeout(saveN,300);
+  updateFxCard(card);
+}
+function onFxClick(ev){
+  const t=ev.target.closest('[data-act]');if(!t)return;
+  const card=t.closest('.fx');if(!card)return;const id=card.dataset.id;
+  const f=fixtures.find(x=>key(x)===id);if(!f)return;
+  const act=t.dataset.act;
+  if(act==='toggle'){
+    const b=$('.fx-b',card);const open=b.hidden;
+    if(open){ui.open[id]=1;b.innerHTML=fxBody(evalFx(f));b.hidden=false}else{delete ui.open[id];b.hidden=true}
+    saveU();
+  }else if(act==='clear'){delete nike[id];saveN();$('.fx-b',card).innerHTML=fxBody(evalFx(f));updateFxCard(card)}
+  else if(act==='delfx'){confirmBox('Odstrániť zápas?',`${esc(f.h)} – ${esc(f.a)} zmizne zo zoznamu (výsledky a stávky ostanú).`,'Odstrániť',()=>{fixtures=fixtures.filter(x=>key(x)!==id);delete nike[id];saveF();saveN();renderFx()},true)}
+  else if(act==='bet'){const e=evalFx(f);const r=e.pr[t.dataset.k];betModal({f,r})}
+}
+
+/* ================= bet modal ================= */
+function betEvent(b){return b.event||(b.h+' – '+b.a)}
+function betModal({f,r,edit}){
+  const isFx=!!f;const b=edit||{};
+  const m=r?MKm[r.k]:null;
+  modal(`<h2>${edit?'Upraviť stávku':'Zapísať stávku'}</h2>
+    ${isFx?`<p><b>${esc(f.h)} – ${esc(f.a)}</b><br><span class="mu sm">${esc(lgName(f.lg))} · ${skD(f.d)}</span></p>`:''}
+    <div class="fgrid" style="margin-top:10px">
+      ${isFx?'':`<label class="f" style="grid-column:1/-1">Podujatie<input id="bEv" value="${esc(b.event||'')}" placeholder="napr. Slovan – Spartak, tenis Alcaraz – Sinner"></label>`}
+      <label class="f" ${isFx?'':'style="grid-column:1/-1"'}>Tip<input id="bLb" value="${esc(b.label||(m?m.ln:''))}" ${isFx?'readonly':''} placeholder="napr. 1, +2,5 gólu"></label>
+      <label class="f">Kurz<input id="bOd" inputmode="decimal" value="${b.odds?nf(b.odds):r?.o?nf(r.o):''}"></label>
+      <label class="f">Vklad (€)<input id="bSt" inputmode="decimal" value="${b.stake!=null?nf(b.stake):r?.stake?nf(r.stake):''}"></label>
+      <label class="f">Dátum zápasu<input id="bD" type="date" value="${b.d||f?.d||localISO()}"></label>
+      ${isFx?'':`<label class="f">Tvoj odhad pravdepodobnosti (%)<input id="bP" inputmode="decimal" value="${b.p?nf(b.p*100,1):''}" placeholder="nepovinné"></label>`}
+    </div>
+    ${r?`<p class="sm mu" style="margin-top:10px">Odhad pravdepodobnosti ${pc(r.p)} · EV pri kurze ${nf(r.o)}: <b class="${cls(r.ev)}">${sg(r.ev,pc)}</b> · navrhovaný vklad ${eur(r.stake)} (${nf(S.kelly*100,0)} % Kelly, max ${nf(S.maxStake,1)} % bankrollu)</p>`:''}
+    <div class="row" style="margin-top:16px;justify-content:flex-end"><button class="btn" data-close>Zrušiť</button><button class="btn pri" id="bOk">${edit?'Uložiť':'Zapísať do denníka'}</button></div>`,
+  md=>{
+    $('#bOk',md).onclick=()=>{
+      const odds=num($('#bOd',md).value),stake=num($('#bSt',md).value),d=$('#bD',md).value;
+      if(!odds||odds<=1){toast('Zadaj platný kurz (väčší ako 1).','bad');return}
+      if(stake==null||stake<0){toast('Zadaj vklad.','bad');return}
+      const nb=edit||{id:uid(),created:localISO(),status:'open'};
+      nb.odds=odds;nb.stake=stake;nb.d=d;
+      if(isFx){Object.assign(nb,{lg:f.lg,h:f.h,a:f.a,k:r.k,label:MKm[r.k].ln});const p=r.p;nb.p=p;nb.ev=p!=null?p*odds-1:null}
+      else{nb.event=$('#bEv',md).value.trim()||'Stávka';nb.label=$('#bLb',md).value.trim()||'–';const pp=num($('#bP',md)?.value);if(pp){nb.p=pp/100;nb.ev=nb.p*odds-1}else if(!nb.k){delete nb.p;delete nb.ev}}
+      if(!edit)bets.push(nb);
+      saveB();closeModal();toast(edit?'Stávka upravená.':'Stávka zapísaná do denníka.');renderHeader();if(cur==='dennik')renderBets();if(cur==='prehlad')renderDash();
+    };
+  });
+}
+
+/* ================= render: denník ================= */
+function renderBets(){
+  const el=$('#v-dennik');const st=betStats(bets);
+  const list=bets.filter(b=>ui.betF==='all'||(ui.betF==='open'?b.status==='open':b.status!=='open'))
+    .sort((a,b)=>(b.d||'').localeCompare(a.d||'')||(b.id>a.id?1:-1));
+  const settledSorted=bets.filter(b=>b.status!=='open').sort((a,b)=>((a.settled||a.d||'')+a.id).localeCompare((b.settled||b.d||'')+b.id));
+  let cum=0;const ys=[0,...settledSorted.map(b=>cum+=profit(b))];
+  el.innerHTML=`
+  <div class="row"><h2>Denník stávok</h2><span class="sp"></span><button class="btn sm" id="manBet">+ Ručná stávka</button></div>
+  <div class="stats">
+    <div class="stat"><div class="l">Zisk / strata</div><div class="v ${cls(st.pl)}">${sg(st.pl,eur)}</div></div>
+    <div class="stat"><div class="l">ROI</div><div class="v ${cls(st.roi)}">${sg(st.roi,pc)}</div></div>
+    <div class="stat"><div class="l">Úspešnosť</div><div class="v">${pc(st.hit,0)}</div><div class="s">${st.settled} vyhodnotených</div></div>
+    <div class="stat"><div class="l">Priem. kurz</div><div class="v">${nf(st.avgOdds)}</div></div>
+    <div class="stat"><div class="l">CLV</div><div class="v ${cls(st.clv)}">${sg(st.clv,pc)}</div><div class="s">kurz vs. záverečný</div></div>
+  </div>
+  <div class="card"><canvas class="ch" id="chBets"></canvas></div>
+  <div class="row"><div class="seg" id="bF">${[['open','Otvorené'],['done','Vyhodnotené'],['all','Všetky']].map(([v,t])=>`<button data-v="${v}" class="${ui.betF===v?'on':''}">${t}</button>`).join('')}</div><span class="sp"></span><span class="hint">Zápasy z modelu sa vyhodnotia samy po importe výsledkov.</span></div>
+  <div class="card" style="padding:0" id="betList">${list.length?list.map(betRow).join(''):`<p class="mu" style="padding:16px;margin:0">Žiadne stávky v tomto filtri.</p>`}</div>
+  <p class="foot">CLV (closing line value): ak pravidelne dostávaš vyšší kurz, než bol tesne pred zápasom, je to najlepší signál, že stávky majú skutočnú hodnotu – lepší ako krátkodobý zisk.</p>`;
+  chart('chBets',ys,v=>nf(v,0)+' €');
+  $('#manBet',el).onclick=()=>betModal({});
+  $$('#bF button',el).forEach(b=>b.onclick=()=>{ui.betF=b.dataset.v;saveU();renderBets()});
+}
+function betRow(b){
+  const pl=profit(b),stLabel={open:'<span class="badge g">otvorená</span>',won:'<span class="badge">výhra</span>',lost:'<span class="badge b">prehra</span>',void:'<span class="badge w">vrátená</span>'}[b.status];
+  const clv=b.closing>1?b.odds/b.closing-1:null;
+  return `<div class="bet" data-id="${b.id}">
+    <div><b>${esc(betEvent(b))}</b> ${stLabel}<div class="mu sm">${esc(b.label)} · ${skD(b.d)}${b.lg?' · '+esc(lgName(b.lg)):b.sport?' · '+esc(SPORT[b.sport]||b.sport):''}${b.auto?' · skóre '+esc(b.auto):''}</div>
+      <div class="sm mono" style="margin-top:2px">@ ${nf(b.odds)} · ${eur(b.stake)}${b.ev!=null?` · <span class="${cls(b.ev)}">EV ${sg(b.ev,pc)}</span>`:''}${clv!=null?` · <span class="${cls(clv)}">CLV ${sg(clv,pc)}</span>`:''}</div></div>
+    <div class="pl ${cls(pl)}">${b.status==='open'?`<span class="mu">${eur(b.stake*(b.odds-1))}</span><div class="xs mu" style="font-family:var(--sans)">možná výhra</div>`:sg(pl,eur)}</div>
+    <div class="act">
+      ${b.status==='open'?`<button class="btn sm" data-ba="won">✓ Výhra</button><button class="btn sm" data-ba="lost">✗ Prehra</button><button class="btn sm" data-ba="void">↺ Vrátená</button>`:`<button class="btn sm" data-ba="open">Zrušiť vyhodnotenie</button>`}
+      <input class="odd" data-ba="closing" inputmode="decimal" placeholder="záver. kurz" title="Záverečný kurz tesne pred zápasom (pre CLV)" value="${b.closing?nf(b.closing):''}">
+      <span class="sp"></span><button class="btn sm" data-ba="edit">Upraviť</button><button class="btn sm ic dan" data-ba="del" title="Zmazať">✕</button>
+    </div></div>`;
+}
+function onBetClick(ev){
+  const t=ev.target.closest('[data-ba]');if(!t||t.tagName==='INPUT')return;
+  const row=t.closest('.bet');const b=bets.find(x=>x.id===row.dataset.id);if(!b)return;
+  const a=t.dataset.ba;
+  if(a==='won'||a==='lost'||a==='void'){b.status=a;b.settled=localISO();delete b.auto}
+  else if(a==='open'){b.status='open';delete b.settled;delete b.auto}
+  else if(a==='edit'){betModal({edit:b,f:b.k?{lg:b.lg,h:b.h,a:b.a,d:b.d}:null,r:b.k?{k:b.k,p:b.p,o:b.odds}:null});return}
+  else if(a==='del'){confirmBox('Zmazať stávku?',esc(betEvent(b))+' · '+esc(b.label),'Zmazať',()=>{bets=bets.filter(x=>x!==b);saveB();renderBets();renderHeader()},true);return}
+  saveB();renderBets();renderHeader();
+}
+function onBetChange(ev){
+  const t=ev.target;if(t.dataset.ba!=='closing')return;
+  const b=bets.find(x=>x.id===t.closest('.bet').dataset.id);if(!b)return;
+  const v=num(t.value);if(v&&v>1)b.closing=v;else delete b.closing;saveB();renderBets();
+}
+
+/* ================= render: backtest ================= */
+let bt={running:false,res:null};
+let btOpt=Object.assign({lg:'',warm:150,m1x2:true,mou:true,minEdge:S.minEdge,minOdds:S.minOdds,maxOdds:S.maxOdds,w:S.w,stake:'flat',useClosing:false},store.get('btopt',{}));
+function renderBacktest(){
+  const el=$('#v-backtest');
+  const lgs=[...leagueCounts().entries()].filter(([,n])=>n>=100).map(([l])=>l).sort();
+  el.innerHTML=`
+  <div class="row"><h2>Backtest</h2></div>
+  <div class="card"><p class="mu sm" style="margin-top:0">Simulácia na histórii: pred každým hracím dňom sa model naučí len zo zápasov, ktoré už boli odohrané, a vsadí tam, kde vidí value oproti vtedajším kurzom (Bet365 / priemer trhu z CSV). Ukáže, či by stratégia dlhodobo zarábala. Kurzy Niké bývajú o niečo nižšie, takže reálny výsledok býva horší.</p>
+  ${lgs.length?`<div class="fgrid" style="margin-top:12px">
+    <label class="f">Liga<select id="tLg"><option value="">Všetky ligy (${lgs.length})</option>${lgs.map(l=>`<option value="${esc(l)}" ${btOpt.lg===l?'selected':''}>${esc(lgName(l))}</option>`).join('')}</select></label>
+    <label class="f">Zahrievanie (dni histórie)<input id="tWarm" inputmode="numeric" value="${btOpt.warm}"><span class="hint">prvé dni sa len učí</span></label>
+    <label class="f">Min. EV (%)<input id="tEdge" inputmode="decimal" value="${nf(btOpt.minEdge,1)}"></label>
+    <label class="f">Kurz od<input id="tMin" inputmode="decimal" value="${nf(btOpt.minOdds)}"></label>
+    <label class="f">Kurz do<input id="tMax" inputmode="decimal" value="${nf(btOpt.maxOdds)}"></label>
+    <label class="f">Váha modelu (0–1)<input id="tW" inputmode="decimal" value="${nf(btOpt.w,2)}"><span class="hint">zvyšok = férový kurz trhu</span></label>
+    <label class="f">Vklady<select id="tSt"><option value="flat" ${btOpt.stake==='flat'?'selected':''}>Rovnaký vklad 1 j.</option><option value="kelly" ${btOpt.stake==='kelly'?'selected':''}>Kelly (podľa nastavení)</option></select></label>
+  </div>
+  <div class="row" style="margin-top:12px;gap:16px">
+    <label class="row sm" style="gap:6px"><input type="checkbox" id="t1" ${btOpt.m1x2?'checked':''}> 1X2</label>
+    <label class="row sm" style="gap:6px"><input type="checkbox" id="t2" ${btOpt.mou?'checked':''}> Góly 2,5</label>
+    <span class="sp"></span><button class="btn pri" id="tRun" ${bt.running?'disabled':''}>${bt.running?'Počítam…':'Spustiť backtest'}</button>
+  </div>
+  <div class="prog" style="margin-top:12px" ${bt.running?'':'hidden'}><i id="tProg"></i></div>`
+  :`<div class="alert i" style="margin-top:10px">Na backtest treba aspoň 100 odohraných zápasov v lige. Nahraj výsledky v záložke Dáta (ideálne 2–3 sezóny) alebo skús demo dáta.</div>`}
+  </div>
+  <div id="btRes">${bt.res?btResHtml(bt.res):''}</div>`;
+  if(bt.res)chart('chBt',bt.res.curve,v=>nf(v,1)+' j.');
+  const r=$('#tRun',el);if(r)r.onclick=runBacktest;
+}
+function leagueCounts(){const s=new Map();for(const m of matches)s.set(m.lg,(s.get(m.lg)||0)+1);return s}
+async function runBacktest(){
+  const el=$('#v-backtest');
+  btOpt={lg:$('#tLg',el).value,warm:Math.max(30,num($('#tWarm',el).value)||150),minEdge:num($('#tEdge',el).value)??5,minOdds:num($('#tMin',el).value)||1.01,maxOdds:num($('#tMax',el).value)||100,
+    w:Math.min(1,Math.max(0,num($('#tW',el).value)??.6)),stake:$('#tSt',el).value,m1x2:$('#t1',el).checked,mou:$('#t2',el).checked};
+  store.set('btopt',btOpt);
+  if(!btOpt.m1x2&&!btOpt.mou){toast('Vyber aspoň jeden trh.','bad');return}
+  bt.running=true;bt.res=null;renderBacktest();
+  const lgs=btOpt.lg?[btOpt.lg]:[...leagueCounts().entries()].filter(([,n])=>n>=100).map(([l])=>l);
+  // build work: per league, per date
+  const work=[];
+  for(const lg of lgs){
+    const L=leagueList(lg);if(!L.length)continue;
+    const start=L[0]._dn+btOpt.warm;const byDate=new Map();
+    for(const m of L){if(m._dn<start)continue;if(!byDate.has(m.d))byDate.set(m.d,[]);byDate.get(m.d).push(m)}
+    for(const[d,ms]of byDate)work.push({lg,d,ms});
+  }
+  const betsBt=[];let llM=0,llK=0,llB=0,nLL=0,bank=100;
+  const opt={w:btOpt.w,margin:S.margin,minEdge:btOpt.minEdge,minOdds:btOpt.minOdds,maxOdds:btOpt.maxOdds,kelly:S.kelly,maxStake:S.maxStake};
+  const keys=[...(btOpt.m1x2?['H','D','A']:[]),...(btOpt.mou?['O25','U25']:[])];
+  const cmap={H:'cH',D:'cD',A:'cA',O25:'cO',U25:'cU'};
+  let t0=performance.now();
+  // process chronologically so Kelly bankroll is sequential
+  work.sort((a,b)=>a.d.localeCompare(b.d));
+  for(let wi=0;wi<work.length;wi++){
+    const{lg,d,ms}=work[wi];
+    const md=fitModel(leagueList(lg),d,S.halfLife);
+    if(md)for(const m of ms){
+      const p=predict(md,m.h,m.a);if(!p)continue;
+      const odds={H:m.oH,D:m.oD,A:m.oA,O25:m.oO,U25:m.oU};
+      if(m.oH&&m.oD&&m.oA){
+        const s=1/m.oH+1/m.oD+1/m.oA,fk={H:1/m.oH/s,D:1/m.oD/s,A:1/m.oA/s};
+        const res=m.hg>m.ag?'H':m.hg===m.ag?'D':'A';
+        llM-=Math.log(Math.max(p[res],1e-9));llK-=Math.log(fk[res]);llB-=Math.log(btOpt.w*p[res]+(1-btOpt.w)*fk[res]);nLL++;
+      }
+      const pr=price(p,odds,Object.assign({bank},opt));
+      for(const k of keys){
+        const r=pr[k];if(!r||!r.value)continue;
+        const won=MKm[k].win(m.hg,m.ag);
+        const stake=btOpt.stake==='flat'?1:Math.max(0,bank*r.frac);
+        if(stake<=0)continue;
+        const pl=won?stake*(r.o-1):-stake;
+        if(btOpt.stake==='kelly')bank+=pl;
+        const c=m[cmap[k]];
+        betsBt.push({d,lg,k,o:r.o,ev:r.ev,stake,pl,won,clv:c>1?r.o/c-1:null});
+      }
+    }
+    if(performance.now()-t0>40){const pg=$('#tProg');if(pg)pg.style.width=(100*wi/work.length).toFixed(1)+'%';await sleep(0);t0=performance.now()}
+  }
+  // stats
+  const staked=betsBt.reduce((t,b)=>t+b.stake,0),pl=betsBt.reduce((t,b)=>t+b.pl,0);
+  let cum=0,peak=0,dd=0;const curve=[0];for(const b of betsBt){cum+=b.pl;curve.push(cum);peak=Math.max(peak,cum);dd=Math.max(dd,peak-cum)}
+  const grp=(fn)=>{const mp=new Map();for(const b of betsBt){const k=fn(b);if(!mp.has(k))mp.set(k,[]);mp.get(k).push(b)}return[...mp.entries()].map(([k,l])=>{const s=l.reduce((t,b)=>t+b.stake,0),p=l.reduce((t,b)=>t+b.pl,0);return{k,n:l.length,hit:l.filter(b=>b.won).length/l.length,odds:l.reduce((t,b)=>t+b.o,0)/l.length,pl:p,roi:s?p/s:null}})};
+  const clvs=betsBt.filter(b=>b.clv!=null);
+  const buckets=[[1,2,'do 2,00'],[2,3,'2,00–3,00'],[3,5,'3,00–5,00'],[5,1e9,'nad 5,00']];
+  bt.res={n:betsBt.length,staked,pl,roi:staked?pl/staked:null,hit:betsBt.length?betsBt.filter(b=>b.won).length/betsBt.length:null,
+    avgOdds:betsBt.length?betsBt.reduce((t,b)=>t+b.o,0)/betsBt.length:null,avgEV:betsBt.length?betsBt.reduce((t,b)=>t+b.ev,0)/betsBt.length:null,
+    clv:clvs.length?clvs.reduce((t,b)=>t+b.clv,0)/clvs.length:null,nClv:clvs.length,dd,curve,
+    ll:nLL?{m:llM/nLL,k:llK/nLL,b:llB/nLL,n:nLL}:null,
+    byMk:grp(b=>MKm[b.k].lb).sort((a,b)=>b.n-a.n),
+    byOdds:grp(b=>buckets.findIndex(([lo,hi])=>b.o>=lo&&b.o<hi)).sort((a,b)=>a.k-b.k).map(r=>Object.assign(r,{k:buckets[r.k][2]})),
+    byLg:lgs.length>1?grp(b=>lgName(b.lg)).sort((a,b)=>b.n-a.n):null,
+    days:work.length,from:work[0]?.d,to:work[work.length-1]?.d,stakeMode:btOpt.stake,bankEnd:bank};
+  bt.running=false;renderBacktest();
+}
+function btResHtml(r){
+  const unit=r.stakeMode==='flat'?' j.':' j.';
+  const tbl=(rows,h)=>`<table class="dt"><thead><tr><th>${h}</th><th class="n">Stávok</th><th class="n">Úspešnosť</th><th class="n">Priem. kurz</th><th class="n">Zisk</th><th class="n">ROI</th></tr></thead><tbody>${rows.map(x=>`<tr><td>${esc(x.k)}</td><td class="n">${x.n}</td><td class="n">${pc(x.hit,0)}</td><td class="n">${nf(x.odds)}</td><td class="n ${cls(x.pl)}">${sg(x.pl,v=>nf(v,1))}</td><td class="n ${cls(x.roi)}">${sg(x.roi,pc)}</td></tr>`).join('')}</tbody></table>`;
+  let verdict;
+  if(r.n<100)verdict=`<div class="alert w">Len ${r.n} stávok – to je príliš málo na záver. Pri takom počte rozhoduje najmä náhoda. Pridaj viac sezón alebo líg.</div>`;
+  else if(r.roi>0.02&&(r.clv==null||r.clv>0))verdict=`<div class="alert i">Stratégia by bola v zisku${r.clv!=null?' a kurzy boli v priemere lepšie ako záverečné (kladné CLV)':''}. To je dobrý signál, nie záruka – trh sa mení a kurzy Niké sú zvyčajne nižšie ako v CSV.</div>`;
+  else if(r.roi>0)verdict=`<div class="alert w">Mierny zisk, ktorý je ale v rozsahu náhody${r.clv!=null&&r.clv<=0?' a CLV je záporné (kurzy sa pred zápasom hýbali proti tebe)':''}. Skús zvýšiť min. EV alebo znížiť váhu modelu.</div>`;
+  else verdict=`<div class="alert b">S týmto nastavením by stratégia prerábala. To je pri stávkovaní bežné – trh je efektívny. Skús prísnejšie filtre (vyšší min. EV, užší rozsah kurzov, nižšiu váhu modelu) alebo iné ligy.</div>`;
+  return `<div class="stats">
+    <div class="stat"><div class="l">Stávok</div><div class="v">${r.n}</div><div class="s">${skD(r.from)} – ${skD(r.to)}</div></div>
+    <div class="stat"><div class="l">Zisk</div><div class="v ${cls(r.pl)}">${sg(r.pl,v=>nf(v,1))}${unit}</div><div class="s">${r.stakeMode==='kelly'?'bankroll 100 → '+nf(r.bankEnd,1):'pri vklade 1 j.'}</div></div>
+    <div class="stat"><div class="l">ROI</div><div class="v ${cls(r.roi)}">${sg(r.roi,pc)}</div><div class="s">predikované EV ${sg(r.avgEV,pc)}</div></div>
+    <div class="stat"><div class="l">Úspešnosť</div><div class="v">${pc(r.hit,0)}</div><div class="s">priem. kurz ${nf(r.avgOdds)}</div></div>
+    <div class="stat"><div class="l">Max. prepad</div><div class="v neg">${nf(r.dd,1)}${unit}</div></div>
+    <div class="stat"><div class="l">CLV</div><div class="v ${cls(r.clv)}">${sg(r.clv,pc)}</div><div class="s">${r.nClv?r.nClv+' stávok':'bez záver. kurzov'}</div></div>
+  </div>
+  ${verdict}
+  <div class="card"><h3>Priebeh zisku</h3><canvas class="ch" id="chBt" style="margin-top:8px"></canvas></div>
+  ${r.ll?`<div class="card"><h3>Presnosť predpovedí 1X2</h3><p class="mu sm">Log-loss na ${r.ll.n} zápasoch (nižšie = presnejšie). Ak je model horší ako trh, výhodu hľadaj skôr v kombinácii oboch.</p>
+    <div class="stats" style="margin-top:8px"><div class="stat"><div class="l">Model</div><div class="v">${nf(r.ll.m,4)}</div></div><div class="stat"><div class="l">Trh (kurzy)</div><div class="v">${nf(r.ll.k,4)}</div></div><div class="stat"><div class="l">Kombinácia</div><div class="v ${r.ll.b<r.ll.k?'pos':''}">${nf(r.ll.b,4)}</div><div class="s">váha modelu ${nf(btOpt.w,2)}</div></div></div></div>`:''}
+  ${r.n?`<div class="card scroll"><h3 style="margin-bottom:6px">Podľa tipu</h3>${tbl(r.byMk,'Tip')}</div>
+  <div class="card scroll"><h3 style="margin-bottom:6px">Podľa kurzu</h3>${tbl(r.byOdds,'Kurz')}</div>
+  ${r.byLg?`<div class="card scroll"><h3 style="margin-bottom:6px">Podľa ligy</h3>${tbl(r.byLg,'Liga')}</div>`:''}`:''}`;
+}
+
+/* ================= render: dáta ================= */
+function seasonCodes(){const t=new Date();const y=t.getMonth()>=6?t.getFullYear():t.getFullYear()-1;const c=yy=>pad(yy%100)+pad((yy+1)%100);return[{c:c(y),t:`${y}/${String(y+1).slice(2)}`},{c:c(y-1),t:`${y-1}/${String(y).slice(2)}`},{c:c(y-2),t:`${y-2}/${String(y-1).slice(2)}`}]}
+function renderData(){
+  const el=$('#v-data');const lc=leagueCounts();
+  const fxc=new Map();for(const f of fixtures)fxc.set(f.lg,(fxc.get(f.lg)||0)+1);
+  const all=[...new Set([...lc.keys(),...fxc.keys()])].sort();
+  const seasons=seasonCodes();
+  let bytes=0;try{for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k.startsWith('ka1_'))bytes+=(localStorage.getItem(k)||'').length*2}}catch(e){}
+  el.innerHTML=`
+  <div class="row"><h2>Dáta a nastavenia</h2></div>
+  <div class="card">
+    <h3>1 · Nahraj štatistiky</h3>
+    <div class="drop" id="drop" style="margin-top:10px"><b>Pretiahni sem CSV súbory</b><div class="mu sm">alebo klikni a vyber (môžeš viac naraz) · výsledky aj budúce zápasy</div><input type="file" id="fileIn" accept=".csv,text/csv" multiple hidden></div>
+    <p class="sm mu" style="margin-top:12px">Zdroj: <a href="https://www.football-data.co.uk/data.php" target="_blank" rel="noopener">football-data.co.uk</a> (zadarmo, aktualizované 2× týždenne). Klikni na ligu, súbor sa stiahne, potom ho nahraj sem. Na dobrý model stačí aktuálna + minulá sezóna.</p>
+    <div class="scroll" style="margin-top:6px"><table class="dt"><thead><tr><th>Liga</th>${seasons.map(s=>`<th>${s.t}</th>`).join('')}</tr></thead><tbody>
+      ${MAIN_LG.map(l=>`<tr><td>${esc(lgName(l))}</td>${seasons.map(s=>`<td><a href="https://www.football-data.co.uk/mmz4281/${s.c}/${l}.csv" target="_blank" rel="noopener">${l}.csv</a></td>`).join('')}</tr>`).join('')}
+    </tbody></table></div>
+    <div class="alert i sm" style="margin-top:12px"><b>Budúce zápasy s kurzami:</b> <a href="https://www.football-data.co.uk/fixtures.csv" target="_blank" rel="noopener">fixtures.csv</a> (hlavné európske ligy) · ďalšie ligy (Rakúsko, Švajčiarsko, Poľsko, Česko…) nájdeš v sekcii <a href="https://www.football-data.co.uk/data.php" target="_blank" rel="noopener">Extra leagues</a>. Zápasy si vieš pridať aj ručne v záložke Zápasy.</div>
+    <div class="row" style="margin-top:12px"><button class="btn" id="demoBtn2">Načítať demo ligu</button><span class="hint">vymyslené tímy na vyskúšanie</span></div>
+  </div>
+  <div class="card">
+    <div class="row"><h3>Načítané ligy</h3><span class="sp"></span><span class="hint">${matches.length} zápasov · ${fixtures.length} budúcich · ~${nf(bytes/1048576,1)} MB z ~5 MB</span></div>
+    ${all.length?`<div class="scroll"><table class="dt" style="margin-top:8px"><thead><tr><th>Liga</th><th class="n">Zápasy</th><th class="hide-m">Obdobie</th><th class="n">Budúce</th><th></th></tr></thead><tbody>
+      ${all.map(l=>{const L=lc.get(l)?leagueList(l):[];return `<tr><td>${esc(lgName(l))}</td><td class="n">${lc.get(l)||0}</td><td class="hide-m mu sm">${L.length?skD(L[0].d)+' – '+skD(L[L.length-1].d):'–'}</td><td class="n">${fxc.get(l)||0}</td><td style="text-align:right"><button class="btn sm ic dan" data-dellg="${esc(l)}" title="Zmazať ligu">✕</button></td></tr>`}).join('')}
+    </tbody></table></div>`:`<p class="mu sm">Zatiaľ nič.</p>`}
+  </div>
+  <div class="card">
+    <h3>2 · Nastavenia stávkovania</h3>
+    <div class="fgrid" style="margin-top:12px" id="setF">
+      ${setField('bankroll','Štartovací bankroll (€)','koľko si vyčlenil na stávky')}
+      ${setField('kelly','Podiel Kellyho (0–1)','0,25 = štvrtinový Kelly, bezpečnejší')}
+      ${setField('maxStake','Max. vklad (% bankrollu)','strop na jednu stávku')}
+      ${setField('minEdge','Min. EV (%)','od akej výhody hlásiť value')}
+      ${setField('minOdds','Min. kurz','')}
+      ${setField('maxOdds','Max. kurz','vysoké kurzy = vysoký rozptyl')}
+      ${setField('w','Váha modelu (0–1)','zvyšok = férový kurz Niké')}
+      ${setField('halfLife','Polčas formy (dni)','po koľkých dňoch má zápas polovičnú váhu')}
+      ${setField('margin','Marža Niké (%)','použije sa, ak nezadáš všetky kurzy trhu')}
+      ${setField('monthLimit','Mesačný limit straty (€)','0 = vypnuté')}
+    </div>
+    <div class="row" style="margin-top:12px"><button class="btn sm" id="setReset">Obnoviť predvolené</button></div>
+  </div>
+  <div class="card">
+    <h3>3 · Záloha a prenos medzi PC a mobilom</h3>
+    <p class="mu sm">V online verzii (odkaz z claude.ai) sa denník, kurzy Niké a nastavenia synchronizujú medzi PC a mobilom automaticky – stav: <b id="syncNote">${esc(syncLabel())}</b>. Importované štatistiky zápasov ostávajú v prehliadači, kde si ich nahral. Pri offline súbore použi zálohu: skopíruj ju a na druhom zariadení vlož cez „Obnoviť zo zálohy“.</p>
+    <div class="row" style="margin-top:10px"><button class="btn" id="expBtn">Vytvoriť zálohu</button><button class="btn" id="impBtn">Obnoviť zo zálohy</button><span class="sp"></span><button class="btn dan" id="wipeBtn">Vymazať všetko</button></div>
+  </div>
+  <div class="card"><h3>Ako aplikácia počíta</h3>
+    <p class="mu sm">Pre každý tím odhadne silu útoku a obrany z výsledkov (novšie zápasy majú vyššiu váhu) a z nich očakávané góly oboch tímov. Z rozdelenia gólov vypočíta pravdepodobnosti 1X2, dvojitej šance, počtu gólov a „oba tímy skórujú“. Z kurzov Niké odstráni maržu a obe pravdepodobnosti zmieša podľa váhy modelu. <b>EV = pravdepodobnosť × kurz − 1</b>. Vklad navrhuje zlomkovým Kellyho kritériom so stropom.</p>
+    <p class="mu sm">Model nevie o zraneniach, rotácii, motivácii ani počasí – tie si over sám. Najlepšia kontrola, či ti to funguje, je dlhodobé CLV a backtest.</p></div>
+  <p class="foot">Len 18+. Analýza nie je záruka výhry. Ak ťa stávkovanie prestáva baviť alebo naháňaš straty, daj si pauzu a nastav si limity aj priamo v účte na Niké.</p>`;
+  const drop=$('#drop',el),fi=$('#fileIn',el);
+  drop.onclick=()=>fi.click();fi.onchange=()=>{if(fi.files.length)importFiles([...fi.files]);fi.value=''};
+  drop.ondragover=e=>{e.preventDefault();drop.classList.add('on')};drop.ondragleave=()=>drop.classList.remove('on');
+  drop.ondrop=e=>{e.preventDefault();drop.classList.remove('on');const fs=[...e.dataTransfer.files].filter(f=>/\.csv$/i.test(f.name)||f.type.includes('csv'));if(fs.length)importFiles(fs);else toast('Pretiahni CSV súbory.','bad')};
+  $('#demoBtn2',el).onclick=makeDemo;
+  $$('[data-dellg]',el).forEach(b=>b.onclick=()=>{const l=b.dataset.dellg;confirmBox('Zmazať ligu?',`${esc(lgName(l))}: všetky výsledky a budúce zápasy. Stávky v denníku ostanú.`,'Zmazať',()=>{matches=matches.filter(m=>m.lg!==l);fixtures=fixtures.filter(f=>f.lg!==l);ver++;saveM();saveF();renderData()},true)});
+  $$('#setF input',el).forEach(inp=>inp.onchange=()=>{const k=inp.dataset.s;let v=num(inp.value);if(v==null){inp.value=nf(S[k],k==='w'||k==='kelly'?2:k==='halfLife'?0:2);return}
+    if(k==='w'||k==='kelly')v=Math.min(1,Math.max(0,v));if(k==='halfLife')v=Math.max(14,Math.round(v));
+    S[k]=v;saveS();renderHeader();toast('Nastavenie uložené.')});
+  $('#setReset',el).onclick=()=>confirmBox('Obnoviť predvolené nastavenia?','Bankroll, Kelly, limity a parametre modelu sa vrátia na pôvodné hodnoty.','Obnoviť',()=>{S=Object.assign({},DEF);saveS();renderData();renderHeader()});
+  $('#expBtn',el).onclick=exportModal;$('#impBtn',el).onclick=importModal;
+  $('#wipeBtn',el).onclick=()=>confirmBox('Vymazať všetky dáta?','Zmažú sa výsledky, zápasy, kurzy, denník aj nastavenia v tomto prehliadači. Najprv si urob zálohu.','Vymazať všetko',()=>{matches=[];fixtures=[];bets=[];nike={};S=Object.assign({},DEF);ver++;pickOdds={};dirty();['matches','fixtures','bets','nike','settings','ui','btopt','pickOdds'].forEach(k=>{try{localStorage.removeItem('ka1_'+k)}catch(e){}});bt.res=null;renderAll();toast('Všetko vymazané.')},true);
+}
+function setField(k,l,h){const d=k==='w'||k==='kelly'?2:k==='halfLife'||k==='monthLimit'?0:k==='minEdge'||k==='maxStake'||k==='margin'?1:2;return `<label class="f">${esc(l)}<input data-s="${k}" inputmode="decimal" value="${nf(S[k],d)}">${h?`<span class="hint">${esc(h)}</span>`:''}</label>`}
+function exportModal(){
+  modal(`<h2>Záloha</h2><label class="row sm" style="gap:6px"><input type="checkbox" id="exM" checked> vrátane výsledkov zápasov (väčší súbor)</label>
+  <textarea id="exT" rows="8" readonly style="margin-top:10px"></textarea>
+  <div class="row" style="margin-top:12px"><button class="btn pri" id="exCopy">Kopírovať</button><button class="btn" id="exDl">Stiahnuť súbor</button><span class="sp"></span><button class="btn" data-close>Zavrieť</button></div>
+  <p class="hint" style="margin-top:8px">Stiahnutie funguje pri spustení zo súboru na počítači; v náhľade cez claude.ai použi Kopírovať.</p>`,md=>{
+    const build=()=>JSON.stringify({app:'analyzator-kurzov',v:1,at:new Date().toISOString(),settings:S,bets,nike,pickOdds,fixtures,matches:$('#exM',md).checked?matches:undefined});
+    const fill=()=>{$('#exT',md).value=build()};fill();$('#exM',md).onchange=fill;
+    $('#exCopy',md).onclick=async()=>{try{await navigator.clipboard.writeText($('#exT',md).value);toast('Záloha skopírovaná.')}catch(e){$('#exT',md).select();toast('Označené – skopíruj cez Ctrl+C / podržaním.')}};
+    $('#exDl',md).onclick=()=>{try{const b=new Blob([$('#exT',md).value],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='analyzator-kurzov-zaloha-'+localISO()+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),2000)}catch(e){toast('Stiahnutie tu nie je povolené – použi Kopírovať.','bad')}};
+  });
+}
+function importModal(){
+  modal(`<h2>Obnoviť zo zálohy</h2><p class="mu sm">Vlož text zálohy alebo vyber súbor .json. Aktuálne dáta v tomto prehliadači sa nahradia.</p>
+  <textarea id="imT" rows="8" placeholder='{"app":"analyzator-kurzov",…}'></textarea>
+  <div class="row" style="margin-top:12px"><button class="btn" id="imF">Vybrať súbor</button><input type="file" id="imFi" accept=".json,application/json" hidden><span class="sp"></span><button class="btn" data-close>Zrušiť</button><button class="btn pri" id="imOk">Obnoviť</button></div>`,md=>{
+    $('#imF',md).onclick=()=>$('#imFi',md).click();
+    $('#imFi',md).onchange=async e=>{const f=e.target.files[0];if(f)$('#imT',md).value=await f.text()};
+    $('#imOk',md).onclick=()=>{
+      let d;try{d=JSON.parse($('#imT',md).value)}catch(e){toast('Text nie je platná záloha.','bad');return}
+      if(!d||d.app!=='analyzator-kurzov'){toast('Toto nie je záloha z Analyzátora kurzov.','bad');return}
+      S=Object.assign({},DEF,d.settings||{});bets=d.bets||[];nike=d.nike||{};fixtures=d.fixtures||[];if(d.matches)matches=d.matches;if(d.pickOdds){pickOdds=d.pickOdds;savePO()}
+      ver++;saveS();saveB();saveN();saveF();saveM();closeModal();renderAll();toast('Záloha obnovená.');
+    };
+  });
+}
+
+
+/* ================= cloud: denné tipy + synchronizácia ================= */
+let DB=null,UID=null,picksDocs=[],picksStatus='loading',syncStatus='off';
+let pickOdds=store.get('pickOdds',{}),savePT;
+let tipF=Object.assign({day:'open',sport:''},store.get('tipF',{}));
+let syncAt=store.get('syncAt',0),syncTimer=null,syncBusy=false,syncOn=false;
+function savePO(){store.set('pickOdds',pickOdds);dirty()}
+function dirty(){syncAt=Date.now();try{localStorage.setItem('ka1_syncAt',String(syncAt))}catch(e){}if(syncOn){clearTimeout(syncTimer);syncTimer=setTimeout(pushState,1500)}}
+function syncLabel(){return {off:'vypnutá – dáta sú len v tomto zariadení',wait:'pripája sa…',ok:'zapnutá ✓',err:'chyba – skúsi sa znova',big:'denník je príliš veľký na synchronizáciu'}[syncStatus]||'–'}
+function setSync(s){syncStatus=s;const n=$('#syncNote');if(n)n.textContent=syncLabel()}
+async function pushState(){
+  if(!DB||!UID)return;
+  if(syncBusy){clearTimeout(syncTimer);syncTimer=setTimeout(pushState,1500);return}
+  if(!syncAt){syncAt=Date.now();try{localStorage.setItem('ka1_syncAt',String(syncAt))}catch(e){}}
+  const body={v:1,at:syncAt,bets,pickOdds,nike,settings:S};
+  if(JSON.stringify(body).length>240000){setSync('big');return}
+  syncBusy=true;
+  try{await DB.doc('data/users/'+UID+'/state').set(body);setSync('ok')}catch(e){setSync('err')}
+  syncBusy=false;
+}
+function applyRemote(d){
+  const c=JSON.parse(JSON.stringify(d));
+  bets=Array.isArray(c.bets)?c.bets:[];pickOdds=c.pickOdds||{};nike=c.nike||{};S=Object.assign({},DEF,c.settings||{});syncAt=c.at||0;
+  store.set('bets',bets);store.set('pickOdds',pickOdds);store.set('nike',nike);store.set('settings',S);try{localStorage.setItem('ka1_syncAt',String(syncAt))}catch(e){}
+  autoSettlePicks();renderAll();
+}
+async function loadPicksFile(){
+  if(!/^https?:$/.test(location.protocol)){picksStatus='local';if(cur==='tipy')renderTips();return}
+  try{
+    const r=await fetch('picks.json?t='+Date.now(),{cache:'no-store'});
+    if(!r.ok)throw new Error(r.status);
+    const j=await r.json();const days=Array.isArray(j.days)?j.days:[];
+    picksDocs=days.filter(d=>d&&typeof d==='object').sort((a,b)=>String(b.date).localeCompare(String(a.date)));
+    picksStatus='ok';
+    if(autoSettlePicks()){renderHeader();if(cur==='dennik')renderBets()}
+  }catch(e){picksStatus=picksDocs.length?'ok':'err'}
+  if(cur==='tipy')renderTips();
+}
+async function initCloud(){
+  let tries=0;while(!(window.claude&&typeof window.claude.use==='function')&&tries<15){await sleep(200);tries++}
+  if(!(window.claude&&typeof window.claude.use==='function')){setSync('off');await loadPicksFile();document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loadPicksFile()});return}
+  try{DB=await window.claude.use('db')}catch(e){DB=null}
+  if(!DB){picksStatus='none';setSync('off');if(cur==='tipy')renderTips();return}
+  const t=setTimeout(()=>{if(picksStatus==='loading'){picksStatus='slow';if(cur==='tipy')renderTips()}},10000);
+  try{
+    DB.collection('picks').orderBy('date','desc').limit(21).onSnapshot(sn=>{
+      if(!sn.metadata.fromCache)clearTimeout(t);
+      picksDocs=sn.docs.filter(d=>d.exists).map(d=>d.data()).filter(d=>d&&typeof d==='object');
+      picksStatus='ok';
+      if(autoSettlePicks()){renderHeader();if(cur==='dennik')renderBets()}
+      if(cur==='tipy')renderTips();
+    },e=>{clearTimeout(t);picksStatus='err';if(cur==='tipy')renderTips()});
+  }catch(e){clearTimeout(t);picksStatus='err';if(cur==='tipy')renderTips()}
+  // synchronizácia denníka medzi zariadeniami
+  try{const U=await window.claude.use('user');UID=U?await U.id():null}catch(e){UID=null}
+  if(!UID){setSync('off');return}
+  setSync('wait');
+  try{
+    DB.doc('data/users/'+UID+'/state').onSnapshot(sn=>{
+      syncOn=true;
+      if(!sn.exists){if(bets.length||Object.keys(pickOdds).length||Object.keys(nike).length)pushState();else setSync('ok');return}
+      const d=sn.data()||{};const at=+d.at||0;
+      if(at>syncAt)applyRemote(d);else if(at<syncAt)pushState();
+      setSync('ok');
+    },e=>setSync('err'));
+  }catch(e){setSync('err')}
+}
+const SPORT={futbal:'Futbal',NHL:'NHL',NBA:'NBA'};
+function allPicks(){
+  const out=[];
+  for(const d of picksDocs){if(!Array.isArray(d.picks))continue;for(const p of d.picks){if(!p||typeof p!=='object')continue;const pp=num(p.p);if(!(pp>0&&pp<1))continue;out.push(Object.assign({},p,{date:String(d.date||''),p:pp,_k:String(d.date||'')+'/'+String(p.id||'')}))}}
+  return out;
+}
+const minOddsOf=p=>Math.ceil((1+S.minEdge/100)/p.p*100)/100;
+function pickStart(p){const d=new Date(p.start);return isNaN(d)?null:d}
+function pickWhen(p){const d=pickStart(p);if(!d)return esc(p.date||'');return `${WD[d.getDay()]} ${d.getDate()}. ${d.getMonth()+1}. · ${pad(d.getHours())}:${pad(d.getMinutes())}`}
+function pickDay(p){const d=pickStart(p);return d?localISO(d):p.date}
+function autoSettlePicks(){
+  const mp=new Map(allPicks().map(p=>[p._k,p]));let n=0;
+  for(const b of bets){
+    if(b.status!=='open'||!b.pick)continue;const p=mp.get(b.pick);if(!p)continue;
+    if(['won','lost','void'].includes(p.result)){b.status=p.result;b.settled=localISO();if(p.score)b.auto=String(p.score);n++}
+  }
+  if(n)saveB();return n;
+}
+function pickEval(p){
+  const o=pickOdds[p._k];const min=minOddsOf(p);
+  if(!(o>1))return {min};
+  const ev=p.p*o-1,kf=Math.max(0,ev/(o-1))*S.kelly,frac=Math.min(kf,S.maxStake/100);
+  return {min,o,ev,stake:Math.floor(bankNow()*frac*2)/2,play:o>=min&&o>=S.minOdds&&o<=S.maxOdds&&frac>0};
+}
+function pickOut(p){
+  if(['won','lost','void'].includes(p.result))return `<span class="badge ${p.result==='won'?'':p.result==='lost'?'b':'w'}">${{won:'Tip vyšiel',lost:'Tip nevyšiel',void:'Vrátené'}[p.result]}</span>${p.score?` <span class="mono sm">${esc(p.score)}</span>`:''}`;
+  const e=pickEval(p);
+  if(!e.o)return `<span class="hint">Zadaj kurz z Niké – hrať od <b class="mono">${nf(e.min)}</b></span>`;
+  if(e.play)return `<span class="badge">HRAŤ</span> <span class="sm"><b class="pos">EV ${sg(e.ev,pc)}</b> · vklad <b class="mono">${eur(e.stake)}</b></span>`;
+  return `<span class="badge b">NEHRAŤ</span> <span class="sm mu">${e.o<e.min?'kurz pod minimom':'mimo nastavený rozsah kurzov'} (EV ${sg(e.ev,pc)})</span>`;
+}
+function pickCard(p){
+  const conf=Math.max(1,Math.min(3,Math.round(num(p.confidence)||1)));
+  const ref=num(p.refOdds);const done=['won','lost','void'].includes(p.result);
+  const has=bets.some(b=>b.pick===p._k);
+  return `<div class="card" data-pk="${esc(p._k)}">
+    <div class="pk-top"><span class="badge g">${esc(SPORT[p.sport]||p.sport||'')}</span>${p.league&&p.league!==p.sport?`<span>${esc(p.league)} ·</span>`:''}<span>${pickWhen(p)}</span><span class="sp"></span><span class="dots" title="Istota analýzy">${'●'.repeat(conf)}<i>${'●'.repeat(3-conf)}</i></span></div>
+    <div class="fx-teams" style="margin-top:6px">${esc(p.home)}<span>–</span>${esc(p.away)}</div>
+    <div class="pk-m">Sledovať: <b>${esc(p.market)}</b>${p.period?` <span class="mu sm">(${esc(p.period)})</span>`:''}</div>
+    <div class="pk-g">
+      <div><div class="l">Odhad</div><div class="v">${pc(p.p)}</div></div>
+      <div><div class="l">Férový kurz</div><div class="v">${nf(1/p.p)}</div></div>
+      <div><div class="l">Trh</div><div class="v">${ref?nf(ref):'–'}</div></div>
+      <div class="min"><div class="l">Hrať od (Niké)</div><div class="v">${nf(minOddsOf(p))}</div></div>
+    </div>
+    ${p.reason?`<p class="sm mu">${esc(p.reason)}</p>`:''}
+    <div class="pk-in">
+      ${done?'':`<input class="odd ${pickOdds[p._k]?'has':''}" data-po inputmode="decimal" autocomplete="off" placeholder="kurz Niké" value="${pickOdds[p._k]?nf(pickOdds[p._k]):''}">`}
+      <div data-out style="flex:1;min-width:150px">${pickOut(p)}</div>
+      ${done?'':`<button class="btn sm" data-act="pbet" ${pickOdds[p._k]?'':'disabled'}>${has?'✓ V denníku':'+ Do denníka'}</button>`}
+    </div></div>`;
+}
+function renderTips(){
+  const el=$('#v-tipy');const today=localISO(),tom=addDays(today,1);
+  const ps=allPicks();
+  const sports=[...new Set(ps.map(p=>p.sport))];
+  let list=ps.filter(p=>!tipF.sport||p.sport===tipF.sport);
+  const done=p=>['won','lost','void'].includes(p.result);
+  list=list.filter(p=>tipF.day==='open'?!done(p):tipF.day==='today'?pickDay(p)===today:tipF.day==='tom'?pickDay(p)===tom:done(p));
+  list.sort((a,b)=>tipF.day==='done'?String(b.start).localeCompare(String(a.start)):String(a.start).localeCompare(String(b.start)));
+  const latest=picksDocs[0];
+  // úspešnosť tipov
+  const rs=ps.filter(p=>p.result==='won'||p.result==='lost');
+  const won=rs.filter(p=>p.result==='won').length;
+  const refR=rs.filter(p=>num(p.refOdds)>1),refPL=refR.reduce((t,p)=>t+(p.result==='won'?num(p.refOdds)-1:-1),0);
+  const nkR=rs.filter(p=>pickOdds[p._k]>1),nkPL=nkR.reduce((t,p)=>t+(p.result==='won'?pickOdds[p._k]-1:-1),0);
+  let status='';
+  if(picksStatus==='local')status=`<div class="alert i">Denné tipy sa načítavajú len v online verzii aplikácie (odkaz z claude.ai). Tento súbor beží offline – ostatné záložky fungujú normálne.</div>`;
+  else if(picksStatus==='none')status=`<div class="alert w">Tipy sa nedajú načítať – skús sa prihlásiť do claude.ai a stránku otvoriť znova.</div>`;
+  else if(picksStatus==='loading')status=`<p class="mu">Načítavam tipy…</p>`;
+  else if(picksStatus==='slow')status=`<div class="alert w">Tipy sa zatiaľ nepodarilo načítať. Skontroluj pripojenie – ešte to skúšam.</div>`;
+  else if(picksStatus==='err')status=`<div class="alert b">Pri načítaní tipov nastala chyba. Otvor stránku znova.</div>`;
+  else if(!ps.length)status=`<div class="card"><p class="mu" style="margin:0">Zatiaľ žiadne tipy. Analýza prebieha každé ráno – prvé tipy sa objavia tu.</p></div>`;
+  el.innerHTML=`
+  <div class="row"><h2>Denné tipy</h2><span class="sp"></span>${latest&&latest.generatedAt?`<span class="hint">Analýza: ${esc(skDw(String(latest.date)))} ${(()=>{const d=new Date(latest.generatedAt);return isNaN(d)?'':pad(d.getHours())+':'+pad(d.getMinutes())})()}</span>`:''}</div>
+  ${status}
+  ${latest&&latest.summary&&picksStatus==='ok'?`<div class="card tight"><p class="sm" style="margin:0">${esc(latest.summary)}</p></div>`:''}
+  ${ps.length?`<div class="row">
+    <div class="seg" id="tDay">${[['open','Otvorené'],['today','Dnes'],['tom','Zajtra'],['done','Vyhodnotené']].map(([v,t])=>`<button data-v="${v}" class="${tipF.day===v?'on':''}">${t}</button>`).join('')}</div>
+    <div class="seg" id="tSp"><button data-v="" class="${!tipF.sport?'on':''}">Všetko</button>${sports.map(s=>`<button data-v="${esc(s)}" class="${tipF.sport===s?'on':''}">${esc(SPORT[s]||s)}</button>`).join('')}</div>
+  </div>
+  <div style="display:grid;gap:10px">${list.length?list.map(pickCard).join(''):`<div class="card"><p class="mu" style="margin:0">V tomto výbere nie sú žiadne tipy.</p></div>`}</div>`:''}
+  ${rs.length?`<div class="card"><h3>Ako sa tipom darí</h3><div class="stats" style="margin-top:10px">
+    <div class="stat"><div class="l">Vyhodnotené</div><div class="v">${rs.length}</div><div class="s">vyšlo ${won} (${pc(won/rs.length,0)})</div></div>
+    <div class="stat"><div class="l">ROI pri trhovom kurze</div><div class="v ${cls(refPL)}">${refR.length?sg(refPL/refR.length,pc):'–'}</div><div class="s">${refR.length} tipov, vklad 1 j.</div></div>
+    <div class="stat"><div class="l">ROI pri tvojich kurzoch Niké</div><div class="v ${cls(nkPL)}">${nkR.length?sg(nkPL/nkR.length,pc):'–'}</div><div class="s">${nkR.length} tipov so zadaným kurzom</div></div>
+  </div><p class="hint" style="margin-top:8px">Pri desiatkach tipov rozhoduje najmä náhoda – zmysluplné je to hodnotiť až po ~200+ tipoch.</p></div>`:''}
+  <p class="foot">Tipy pripravuje Claude každé ráno z verejne dostupných štatistík, zostáv a trhových kurzov. „Hrať od“ = najnižší kurz Niké, pri ktorom má stávka podľa odhadu aspoň ${nf(S.minEdge,0)} % výhodu. Len 18+.</p>`;
+  $$('#tDay button',el).forEach(b=>b.onclick=()=>{tipF.day=b.dataset.v;store.set('tipF',tipF);renderTips()});
+  $$('#tSp button',el).forEach(b=>b.onclick=()=>{tipF.sport=b.dataset.v;store.set('tipF',tipF);renderTips()});
+}
+function onTipInput(ev){
+  const inp=ev.target;if(!inp.hasAttribute('data-po'))return;
+  const card=inp.closest('[data-pk]');const k=card.dataset.pk;const v=num(inp.value);
+  if(v&&v>1)pickOdds[k]=v;else delete pickOdds[k];
+  inp.classList.toggle('has',!!(v&&v>1));
+  clearTimeout(savePT);savePT=setTimeout(savePO,400);
+  const p=allPicks().find(x=>x._k===k);if(!p)return;
+  $('[data-out]',card).innerHTML=pickOut(p);
+  const b=$('[data-act=pbet]',card);if(b)b.disabled=!(v&&v>1);
+}
+function onTipClick(ev){
+  const t=ev.target.closest('[data-act=pbet]');if(!t)return;
+  const k=t.closest('[data-pk]').dataset.pk;const p=allPicks().find(x=>x._k===k);if(!p)return;
+  const e=pickEval(p);
+  modal(`<h2>Zapísať stávku</h2><p><b>${esc(p.home)} – ${esc(p.away)}</b><br><span class="mu sm">${esc(SPORT[p.sport]||p.sport)} · ${esc(p.league||'')} · ${pickWhen(p)}</span></p>
+    <p class="sm">${esc(p.market)}${p.period?' ('+esc(p.period)+')':''}</p>
+    <div class="fgrid" style="margin-top:10px"><label class="f">Kurz Niké<input id="pOd" inputmode="decimal" value="${nf(e.o)}"></label><label class="f">Vklad (€)<input id="pSt" inputmode="decimal" value="${e.stake>0?nf(e.stake):''}"></label></div>
+    <p class="sm mu" style="margin-top:10px">Odhad ${pc(p.p)} · EV ${sg(e.ev,pc)}${e.play?'':' · <span class="wrn">podľa nastavení by si túto stávku nehral</span>'}</p>
+    <div class="row" style="margin-top:16px;justify-content:flex-end"><button class="btn" data-close>Zrušiť</button><button class="btn pri" id="pOk">Zapísať do denníka</button></div>`,md=>{
+    $('#pOk',md).onclick=()=>{
+      const odds=num($('#pOd',md).value),stake=num($('#pSt',md).value);
+      if(!odds||odds<=1){toast('Zadaj platný kurz.','bad');return}if(stake==null||stake<0){toast('Zadaj vklad.','bad');return}
+      bets.push({id:uid(),created:localISO(),status:'open',pick:p._k,sport:p.sport,event:`${p.home} – ${p.away}`,label:p.market+(p.period?' ('+p.period+')':''),odds,stake,d:pickDay(p),p:p.p,ev:p.p*odds-1});
+      if(pickOdds[p._k]!==odds){pickOdds[p._k]=odds;store.set('pickOdds',pickOdds)}
+      saveB();closeModal();toast('Stávka zapísaná do denníka.');renderHeader();renderTips();
+    };
+  });
+}
+
+/* ================= routing ================= */
+const TABS=['tipy','prehlad','zapasy','dennik','backtest','data'];let cur='tipy';
+function render(t){({tipy:renderTips,prehlad:renderDash,zapasy:renderFx,dennik:renderBets,backtest:renderBacktest,data:renderData})[t]();renderHeader()}
+function renderAll(){render(cur)}
+function go(t,push=true){
+  if(!TABS.includes(t))t='tipy';cur=t;
+  $$('.view').forEach(v=>v.hidden=v.id!=='v-'+t);$$('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+  render(t);window.scrollTo(0,0);
+  if(push){try{if(location.hash!=='#'+t)history.replaceState(null,'','#'+t)}catch(e){}}
+}
+$$('.tab').forEach(b=>b.onclick=()=>go(b.dataset.t));
+$('#bankPill').onclick=()=>go('dennik');
+window.addEventListener('hashchange',()=>{const t=location.hash.slice(1);if(TABS.includes(t)&&t!==cur)go(t,false)});
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]');if(g){go(g.dataset.go);return}
+  const o=e.target.closest('[data-openfx]');if(o){const id=o.dataset.openfx;ui.open[id]=1;const f=fixtures.find(x=>key(x)===id);if(f){ui.lg='';ui.per='all';ui.onlyVal=false}saveU();go('zapasy');setTimeout(()=>{const c=$$('.fx').find(x=>x.dataset.id===id);if(c)c.scrollIntoView({block:'center',behavior:'smooth'})},50)}
+});
+$('#v-zapasy').addEventListener('click',onFxClick);
+$('#v-zapasy').addEventListener('input',onFxInput);
+$('#v-dennik').addEventListener('click',onBetClick);
+$('#v-tipy').addEventListener('input',onTipInput);
+$('#v-tipy').addEventListener('click',onTipClick);
+$('#v-dennik').addEventListener('change',onBetChange);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+// start
+(function init(){
+  const pr=pruneFixtures();if(pr)saveF();
+  for(const k in ui.open){if(!fixtures.some(f=>key(f)===k))delete ui.open[k]}
+  autoSettle();
+  autoSettlePicks();
+  let t=(location.hash||'').slice(1);go(TABS.includes(t)?t:'tipy');
+  initCloud();
+  try{if('serviceWorker' in navigator&&/github\.io$/.test(location.hostname))navigator.serviceWorker.register('sw.js')}catch(e){}
+})();
+</script>
+</body>
+</html>

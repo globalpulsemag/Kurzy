@@ -1,0 +1,103 @@
+{
+ "updatedAt": "2026-11-17T18:43:33+01:00",
+ "days": [
+  {
+   "date": "2026-11-17",
+   "generatedAt": "2026-11-17T18:43:33+01:00",
+   "method": "Kurzy ScoresAndOdds/Covers (odstránená marža), štatistiky Hockey-Reference a Basketball-Reference 2026/27, zostavy a brankári Rotowire/DailyFaceoff; Poisson model pre NHL, normálne rozdelenie pre NBA, 50 % model + 50 % trh.",
+   "picks": [
+    {
+     "away": "Anaheim Ducks",
+     "confidence": 1,
+     "home": "St. Louis Blues",
+     "id": "nhl-ana-stl-ml",
+     "league": "NHL",
+     "market": "Víťaz vrátane predĺženia – Anaheim",
+     "p": 0.471,
+     "period": "vrátane predĺženia",
+     "reason": "Anaheim strieľa 3,8 gólu na zápas, St. Louis je v útoku slabé a Binnington má úspešnosť zákrokov len ,851. Trh dáva Blues priveľa. Brankári nepotvrdení.",
+     "refOdds": 2.24,
+     "refSource": "Covers/ScoresAndOdds (+124/+120)",
+     "sport": "NHL",
+     "start": "2026-11-18T02:00:00+01:00"
+    },
+    {
+     "away": "Edmonton Oilers",
+     "confidence": 1,
+     "home": "Florida Panthers",
+     "id": "nhl-edm-fla-ml",
+     "league": "NHL",
+     "market": "Víťaz vrátane predĺženia – Edmonton",
+     "p": 0.513,
+     "period": "vrátane predĺženia",
+     "reason": "Edmonton 16-3-3 s rozdielom skóre +27 je na papieri silnejší než Florida; trh ich má ako outsidera. Levi aj Markström podobne (,906), brankári nepotvrdení.",
+     "refOdds": 2.08,
+     "refSource": "Covers (+108), SAO +100",
+     "sport": "NHL",
+     "start": "2026-11-18T01:00:00+01:00"
+    },
+    {
+     "away": "Nashville Predators",
+     "confidence": 1,
+     "home": "Minnesota Wild",
+     "id": "nhl-nsh-min-u65",
+     "league": "NHL",
+     "market": "Menej ako 6,5 gólu",
+     "p": 0.638,
+     "period": "riadny hrací čas",
+     "reason": "Minnesota dostáva len 2,2 gólu na zápas, Wallstedt (,926) aj Saros (,917) sú vo forme. Model čaká okolo 5,6 gólu v riadnom čase. Brankári nepotvrdení.",
+     "refOdds": 1.74,
+     "refSource": "ScoresAndOdds (−135, vrátane predĺženia)",
+     "sport": "NHL",
+     "start": "2026-11-18T02:00:00+01:00"
+    },
+    {
+     "away": "Portland Trail Blazers",
+     "confidence": 2,
+     "home": "Minnesota Timberwolves",
+     "id": "nba-por-min-u2285",
+     "league": "NBA",
+     "market": "Menej ako 228,5 bodu",
+     "p": 0.576,
+     "period": "vrátane predĺženia",
+     "reason": "Druhý zápas za sebou tých istých tímov (včera 98:106), oba na back-to-back, Minnesota má najlepšiu obranu ligy a chýba Edwards, Portlandu Morant a Sharpe.",
+     "refOdds": 1.89,
+     "refSource": "ScoresAndOdds (−113)",
+     "sport": "NBA",
+     "start": "2026-11-18T02:00:00+01:00"
+    },
+    {
+     "away": "New York Knicks",
+     "confidence": 2,
+     "home": "Toronto Raptors",
+     "id": "nba-nyk-tor-ml",
+     "league": "NBA",
+     "market": "Víťaz vrátane predĺženia – Knicks",
+     "p": 0.624,
+     "period": "vrátane predĺženia",
+     "reason": "Knicks majú výrazne lepší čistý rating (+6,2 vs +1,0) a Torontu podľa zostáv chýba Kawhi Leonard. Model vidí výhru NY o ~6 bodov, trh len o 2,5.",
+     "refOdds": 1.7,
+     "refSource": "ScoresAndOdds (−142)",
+     "sport": "NBA",
+     "start": "2026-11-18T01:30:00+01:00"
+    },
+    {
+     "away": "Utah Jazz",
+     "confidence": 1,
+     "home": "LA Clippers",
+     "id": "nba-uta-lac-u2255",
+     "league": "NBA",
+     "market": "Menej ako 225,5 bodu",
+     "p": 0.555,
+     "period": "vrátane predĺženia",
+     "reason": "Oba tímy patria k najslabším útokom ligy a chýbajú im strelci (Markkanen, Jackson, Beal, Ingram). Projekcia ~221 bodov. Zostavy ešte nie sú potvrdené.",
+     "refOdds": 1.87,
+     "refSource": "ScoresAndOdds (−115)",
+     "sport": "NBA",
+     "start": "2026-11-18T04:30:00+01:00"
+    }
+   ],
+   "summary": "6 tipov: 3 NHL a 3 NBA (dnes v noci). Futbal vynechaný – prebieha reprezentačná prestávka, sledované ligy nehrajú. Pri NHL nie sú potvrdení brankári, preto nízka istota; pozor na trhy s veľkým rozdielom medzi modelom a trhom (CHA–LAL sme zámerne vynechali)."
+  }
+ ]
+}
