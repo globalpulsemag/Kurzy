@@ -1,6 +1,44 @@
 {
- "updatedAt": "2026-11-23T16:43:42+01:00",
+ "updatedAt": "2026-11-24T09:46:37+01:00",
  "days": [
+  {
+   "date": "2026-11-24",
+   "generatedAt": "2026-11-24T09:46:37+01:00",
+   "summary": "Dnes 2 tipy, oba NBA: Detroit v Orlande a Dallas s hendikepom +7,5 v Denveri. Futbal (Liga majstrov) vynechaný – môj model nevie spoľahlivo porovnať tímy z rôznych líg a k Slovanu nemám dáta; jediný zápas NHL (Vegas – Edmonton) bez výhody, Oilers navyše bez Hymana a s neistými brankármi.",
+   "method": "ESPN API (rozpis, kurzy DraftKings, tabuľky NBA, zranenia), NHL API (tabuľka, štatistiky tímov a brankárov), football-data.co.uk (Dixon-Coles, nepoužité na tipy); konečné p = 50 % model + 50 % trh bez marže.",
+   "picks": [
+    {
+     "id": "nba-det-orl-ml",
+     "sport": "NBA",
+     "league": "NBA",
+     "start": "2026-11-25T01:00:00+01:00",
+     "home": "Orlando Magic",
+     "away": "Detroit Pistons",
+     "market": "Víťaz vrátane predĺženia – Detroit",
+     "period": "vrátane predĺženia",
+     "p": 0.606,
+     "refOdds": 1.74,
+     "refSource": "DraftKings cez ESPN (−135)",
+     "confidence": 2,
+     "reason": "Detroit má výrazne lepší bodový rozdiel (+4,8 vs −4,1) a Orlando hrá bez Banchera; Pistons chýba Duren, Cunningham je pravdepodobne k dispozícii."
+    },
+    {
+     "id": "nba-dal-den-h75",
+     "sport": "NBA",
+     "league": "NBA",
+     "start": "2026-11-25T04:00:00+01:00",
+     "home": "Denver Nuggets",
+     "away": "Dallas Mavericks",
+     "market": "Hendikep Dallas +7,5",
+     "period": "vrátane predĺženia",
+     "p": 0.549,
+     "refOdds": 1.97,
+     "refSource": "DraftKings cez ESPN (−103)",
+     "confidence": 1,
+     "reason": "Denver má zatiaľ len mierne kladný bodový rozdiel a veľa inkasuje; model čaká výhru Nuggets o ~4 body, nie o 8. P.J. Washington je otáznik."
+    }
+   ]
+  },
   {
    "date": "2026-11-23",
    "generatedAt": "2026-11-23T09:46:40+01:00",
@@ -19,7 +57,9 @@
      "refOdds": 1.8,
      "refSource": "DraftKings cez ESPN (o6,5 vrátane predĺženia)",
      "sport": "NHL",
-     "start": "2026-11-24T03:40:00+01:00"
+     "start": "2026-11-24T03:40:00+01:00",
+     "result": "lost",
+     "score": "3:2"
     },
     {
      "away": "Fiorentina",
@@ -34,7 +74,9 @@
      "refOdds": 1.84,
      "refSource": "priemer kurzov 1X2 (football-data.co.uk)",
      "sport": "futbal",
-     "start": "2026-11-23T20:45:00+01:00"
+     "start": "2026-11-23T20:45:00+01:00",
+     "result": "won",
+     "score": "3:0"
     },
     {
      "away": "Everton",
@@ -49,7 +91,9 @@
      "refOdds": 2.1,
      "refSource": "najvyšší kurz na trhu (football-data.co.uk)",
      "sport": "futbal",
-     "start": "2026-11-23T21:00:00+01:00"
+     "start": "2026-11-23T21:00:00+01:00",
+     "result": "lost",
+     "score": "4:0"
     },
     {
      "away": "Minnesota Wild",
@@ -64,7 +108,9 @@
      "refOdds": null,
      "refSource": "DraftKings ML Minnesota 1,49 (vrátane predĺženia), riadny čas prepočítaný",
      "sport": "NHL",
-     "start": "2026-11-24T04:00:00+01:00"
+     "start": "2026-11-24T04:00:00+01:00",
+     "result": "won",
+     "score": "2:5"
     },
     {
      "away": "LA Clippers",
@@ -79,7 +125,9 @@
      "refOdds": 1.95,
      "refSource": "DraftKings cez ESPN",
      "sport": "NBA",
-     "start": "2026-11-24T02:30:00+01:00"
+     "start": "2026-11-24T02:30:00+01:00",
+     "result": "lost",
+     "score": "116:104"
     },
     {
      "away": "Fiorentina",
@@ -94,7 +142,9 @@
      "refOdds": 1.62,
      "refSource": "najvyšší kurz na trhu (football-data.co.uk)",
      "sport": "futbal",
-     "start": "2026-11-23T20:45:00+01:00"
+     "start": "2026-11-23T20:45:00+01:00",
+     "result": "won",
+     "score": "3:0"
     },
     {
      "away": "Cleveland Cavaliers",
@@ -109,7 +159,9 @@
      "refOdds": 1.93,
      "refSource": "DraftKings cez ESPN",
      "sport": "NBA",
-     "start": "2026-11-24T02:00:00+01:00"
+     "start": "2026-11-24T02:00:00+01:00",
+     "result": "won",
+     "score": "122:108"
     },
     {
      "away": "Columbus Blue Jackets",
@@ -124,7 +176,9 @@
      "refOdds": 1.49,
      "refSource": "DraftKings cez ESPN",
      "sport": "NHL",
-     "start": "2026-11-24T01:00:00+01:00"
+     "start": "2026-11-24T01:00:00+01:00",
+     "result": "won",
+     "score": "3:2"
     }
    ],
    "summary": "8 tipov: 3 futbal (pondelkové zápasy Serie A a Premier League), 3 NHL, 2 NBA. Najzaujímavejšie sú góly v Seattli a Minnesota v San Jose. Väčšinu NBA zápasov som vynechal, lebo trh reaguje na absencie hviezd (Edwards, SGA, Wembanyama, Morant), ktoré model z tabuľky nezachytí; Levante – Elche bez výhody."
